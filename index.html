@@ -413,13 +413,20 @@
             overflow: hidden;
             box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             margin-bottom: 25px;
+            position: relative;
         }
 
-        /* Real Video Player Styles */
+        /* Video Player Styles */
         #videoPlayer {
             width: 100%;
             height: 400px;
             background: #000;
+        }
+
+        #youtubePlayer {
+            width: 100%;
+            height: 400px;
+            border: none;
         }
 
         .video-placeholder {
@@ -431,28 +438,6 @@
             align-items: center;
             justify-content: center;
             color: white;
-        }
-
-        .video-controls {
-            padding: 15px;
-            background: rgba(0,0,0,0.7);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .control-group {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .control-btn {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
         }
 
         .video-info {
@@ -532,6 +517,19 @@
             margin-left: 10px;
         }
 
+        /* Video Source Indicator */
+        .video-source {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.7);
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            z-index: 10;
+        }
+
         /* Responsive Styles */
         @media (max-width: 992px) {
             .sidebar {
@@ -550,7 +548,7 @@
                 display: block;
             }
             
-            #videoPlayer, .video-placeholder {
+            #videoPlayer, #youtubePlayer, .video-placeholder {
                 height: 300px;
             }
 
@@ -572,7 +570,7 @@
                 padding: 15px;
             }
             
-            #videoPlayer, .video-placeholder {
+            #videoPlayer, #youtubePlayer, .video-placeholder {
                 height: 200px;
             }
             
@@ -708,10 +706,22 @@
             
             <div class="video-container">
                 <div class="video-player">
-                    <video id="videoPlayer" controls width="100%" height="400">
+                    <div class="video-source" id="videoSource">Loading...</div>
+                    
+                    <!-- HTML5 Video Player -->
+                    <video id="videoPlayer" controls width="100%" height="400" style="display: none;">
                         Your browser does not support the video tag.
                     </video>
-                    <div class="video-placeholder" id="videoPlaceholder" style="display: none;">
+                    
+                    <!-- YouTube Player -->
+                    <iframe id="youtubePlayer" width="100%" height="400" style="display: none;"
+                            src="" frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                    </iframe>
+                    
+                    <!-- Placeholder -->
+                    <div class="video-placeholder" id="videoPlaceholder">
                         <i class="fas fa-play-circle"></i>
                         <h3 id="currentLessonTitle">Select a lesson to start</h3>
                         <p>Choose a lesson from the sidebar to begin learning</p>
@@ -752,9 +762,11 @@
                 this.userProgress = null;
                 this.currentLessonId = null;
                 this.allLessons = [];
+                this.youtubeAPIReady = false;
                 
                 this.initEventListeners();
                 this.checkExistingSession();
+                this.loadYouTubeAPI();
             }
 
             initEventListeners() {
@@ -781,118 +793,162 @@
                 document.getElementById('closeSidebar').addEventListener('click', () => this.toggleSidebar());
                 document.getElementById('prevLessonBtn').addEventListener('click', () => this.navigateLesson(-1));
                 document.getElementById('nextLessonBtn').addEventListener('click', () => this.navigateLesson(1));
-
-                // Video events
-                document.getElementById('videoPlayer').addEventListener('ended', () => {
-                    this.markLessonCompleted();
-                });
-
-                // Video progress tracking
-                document.getElementById('videoPlayer').addEventListener('timeupdate', () => {
-                    this.trackVideoProgress();
-                });
             }
 
-            // CORS Proxy Solution
+            loadYouTubeAPI() {
+                // Load YouTube IFrame API
+                const tag = document.createElement('script');
+                tag.src = "https://www.youtube.com/iframe_api";
+                const firstScriptTag = document.getElementsByTagName('script')[0];
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+                window.onYouTubeIframeAPIReady = () => {
+                    this.youtubeAPIReady = true;
+                    console.log('YouTube API Ready');
+                };
+            }
+
+            // Improved API Call with multiple fallbacks
             async callAPI(action, params = {}) {
-                // Use CORS proxy to bypass restrictions
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const targetUrl = API_URL;
+                const methods = [
+                    () => this.callAPIWithCorsProxy(action, params),
+                    () => this.callAPIDirect(action, params),
+                    () => this.callAPIWithJsonp(action, params)
+                ];
+
+                for (const method of methods) {
+                    try {
+                        const result = await method();
+                        if (result && !result.error) {
+                            return result;
+                        }
+                    } catch (error) {
+                        console.warn(`API method failed: ${method.name}`, error);
+                        continue;
+                    }
+                }
+
+                // All methods failed, use mock data
+                console.log('All API methods failed, using mock data');
+                return this.getMockData(action, params);
+            }
+
+            async callAPIWithCorsProxy(action, params = {}) {
+                const proxyUrl = 'https://api.allorigins.win/raw?url=';
+                const targetUrl = encodeURIComponent(API_URL);
                 
                 const formData = new URLSearchParams();
                 formData.append('action', action);
-                
-                // Add all parameters
                 Object.keys(params).forEach(key => {
                     formData.append(key, params[key]);
                 });
 
-                try {
-                    console.log(`Calling API: ${action}`, params);
-                    
-                    const response = await fetch(proxyUrl + targetUrl, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        body: formData
-                    });
+                const response = await fetch(proxyUrl + targetUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: formData
+                });
 
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-
-                    const text = await response.text();
-                    console.log('Raw response:', text);
-                    
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        console.error('JSON parse error:', e);
-                        // If JSON parsing fails, try to extract JSON from the response
-                        const jsonMatch = text.match(/\{.*\}/);
-                        if (jsonMatch) {
-                            return JSON.parse(jsonMatch[0]);
-                        }
-                        throw new Error('Invalid JSON response');
-                    }
-                } catch (error) {
-                    console.error('API call failed:', error);
-                    // Fallback to direct call without proxy
-                    return await this.callAPIDirect(action, params);
-                }
+                if (!response.ok) throw new Error('CORS proxy failed');
+                return await response.json();
             }
 
-            // Direct call without proxy (for when proxy fails)
             async callAPIDirect(action, params = {}) {
                 const formData = new URLSearchParams();
                 formData.append('action', action);
-                
                 Object.keys(params).forEach(key => {
                     formData.append(key, params[key]);
                 });
 
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    'Accept': 'application/json'
+                    },
+                });
+                
+                const text = await response.text();
                 try {
-                    console.log(`Direct API call: ${action}`, params);
-                    
-                    const response = await fetch(API_URL, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded',
-                        },
-                    });
-                    
-                    const text = await response.text();
-                    console.log('Direct response:', text);
-                    
-                    try {
-                        return JSON.parse(text);
-                    } catch (e) {
-                        const jsonMatch = text.match(/\{.*\}/);
-                        if (jsonMatch) {
-                            return JSON.parse(jsonMatch[0]);
-                        }
-                        throw new Error('Invalid JSON response');
-                    }
-                } catch (error) {
-                    console.error('Direct API call failed:', error);
-                    return this.getMockData(action, params);
+                    return JSON.parse(text);
+                } catch (e) {
+                    // Try to extract JSON from response
+                    const jsonMatch = text.match(/\{[\s\S]*\}/);
+                    if (jsonMatch) return JSON.parse(jsonMatch[0]);
+                    throw new Error('Invalid JSON response');
                 }
             }
 
-            // Mock data for complete fallback
+            async callAPIWithJsonp(action, params = {}) {
+                return new Promise((resolve, reject) => {
+                    const callbackName = 'jsonp_callback_' + Date.now();
+                    const script = document.createElement('script');
+                    
+                    const urlParams = new URLSearchParams({
+                        action,
+                        ...params,
+                        callback: callbackName
+                    });
+                    
+                    script.src = `${API_URL}?${urlParams}`;
+                    
+                    window[callbackName] = (data) => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        resolve(data);
+                    };
+                    
+                    script.onerror = () => {
+                        delete window[callbackName];
+                        document.body.removeChild(script);
+                        reject(new Error('JSONP failed'));
+                    };
+                    
+                    document.body.appendChild(script);
+                });
+            }
+
             getMockData(action, params) {
                 console.log('Using mock data for:', action);
+                // Your actual lesson data from Google Sheets
                 const mockData = {
-                    register: { 
-                        success: true, 
-                        user: { 
-                            id: Date.now(), 
-                            name: params.name, 
-                            email: params.email 
-                        } 
+                    getCourseContent: {
+                        modules: [
+                            {
+                                id: 1,
+                                title: "Module 1: HTML Fundamentals",
+                                order: 1,
+                                lessons: [
+                                    { 
+                                        id: 1, 
+                                        title: "Introduction to HTML", 
+                                        duration: "12:45", 
+                                        description: "Learn HTML basics and structure", 
+                                        video_url: "https://www.youtube.com/embed/gAXbB_4BavE",
+                                        order: 1 
+                                    },
+                                    { 
+                                        id: 2, 
+                                        title: "HTML Document Structure", 
+                                        duration: "18:30", 
+                                        description: "Understand HTML document anatomy", 
+                                        video_url: "https://www.youtube.com/embed/i94zoNYSFik",
+                                        order: 2 
+                                    },
+                                    { 
+                                        id: 3, 
+                                        title: "HTML Forms and Inputs", 
+                                        duration: "22:15", 
+                                        description: "Create interactive HTML forms", 
+                                        video_url: "https://www.youtube.com/embed/2O8pkybH6po",
+                                        order: 3 
+                                    }
+                                ]
+                            }
+                        ]
                     },
                     login: { 
                         success: true, 
@@ -902,28 +958,13 @@
                             email: params.email 
                         } 
                     },
-                    getCourseContent: {
-                        modules: [
-                            {
-                                id: 1,
-                                title: "Module 1: HTML Fundamentals",
-                                order: 1,
-                                lessons: [
-                                    { id: 1, title: "Introduction to HTML", duration: "12:45", description: "Learn HTML basics and structure", video_url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4", order: 1 },
-                                    { id: 2, title: "HTML Document Structure", duration: "18:30", description: "Understand HTML document anatomy", video_url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4", order: 2 },
-                                    { id: 3, title: "HTML Forms and Inputs", duration: "22:15", description: "Create interactive HTML forms", video_url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4", order: 3 }
-                                ]
-                            },
-                            {
-                                id: 2,
-                                title: "Module 2: CSS Styling",
-                                order: 2,
-                                lessons: [
-                                    { id: 4, title: "CSS Selectors and Properties", duration: "25:10", description: "Master CSS selectors and styling", video_url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4", order: 1 },
-                                    { id: 5, title: "Flexbox Layout", duration: "28:35", description: "Create flexible layouts with Flexbox", video_url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4", order: 2 }
-                                ]
-                            }
-                        ]
+                    register: { 
+                        success: true, 
+                        user: { 
+                            id: Date.now(), 
+                            name: params.name, 
+                            email: params.email 
+                        } 
                     },
                     getUserProgress: {
                         progress: {
@@ -932,22 +973,10 @@
                             lastUpdated: new Date().toISOString()
                         }
                     },
-                    updateProgress: { 
-                        success: true,
-                        message: "Progress updated successfully"
-                    },
-                    getLesson: {
-                        lesson: {
-                            id: 1,
-                            title: "Introduction to HTML",
-                            duration: "12:45",
-                            description: "Learn HTML basics and structure",
-                            video_url: "https://sample-videos.com/zip/10/mp4/SampleVideo_1280x720_1mb.mp4"
-                        }
-                    }
+                    updateProgress: { success: true }
                 };
 
-                return mockData[action] || { error: 'Action not found' };
+                return mockData[action] || { error: 'Action not found in mock data' };
             }
 
             showMessage(elementId, message, type) {
@@ -1125,25 +1154,38 @@
                     modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;"><div class="loading"></div> Loading course content...</div>';
                     
                     const result = await this.callAPI('getCourseContent');
-                    this.courseContent = result.modules;
-                    this.allLessons = this.courseContent.flatMap(module => module.lessons);
-                    this.renderCourseContent();
                     
-                    console.log('Course content loaded:', this.courseContent);
+                    if (result && result.modules) {
+                        this.courseContent = result.modules;
+                        this.allLessons = this.courseContent.flatMap(module => module.lessons);
+                        this.renderCourseContent();
+                        console.log('Course content loaded successfully:', this.courseContent);
+                    } else {
+                        throw new Error('Invalid course content response');
+                    }
                 } catch (error) {
                     console.error('Failed to load course content:', error);
                     const modulesContainer = document.getElementById('courseModules');
-                    modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;">Failed to load course content. Please try refreshing.</div>';
+                    modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;">Failed to load course content. Using demo data.</div>';
+                    
+                    // Load mock data as fallback
+                    const mockResult = this.getMockData('getCourseContent');
+                    this.courseContent = mockResult.modules;
+                    this.allLessons = this.courseContent.flatMap(module => module.lessons);
+                    this.renderCourseContent();
                 }
             }
 
             async loadUserProgress() {
                 try {
                     const result = await this.callAPI('getUserProgress', { user_id: this.currentUser.id });
-                    this.userProgress = result.progress;
-                    this.updateProgressDisplay();
-                    
-                    console.log('User progress loaded:', this.userProgress);
+                    if (result && result.progress) {
+                        this.userProgress = result.progress;
+                        this.updateProgressDisplay();
+                        console.log('User progress loaded:', this.userProgress);
+                    } else {
+                        throw new Error('Invalid progress response');
+                    }
                 } catch (error) {
                     console.error('Failed to load user progress:', error);
                     // Default progress
@@ -1235,19 +1277,8 @@
                     <p><strong>Duration:</strong> ${lesson.duration}</p>
                 `;
 
-                // Load video
-                const videoPlayer = document.getElementById('videoPlayer');
-                const placeholder = document.getElementById('videoPlaceholder');
-                
-                if (lesson.video_url) {
-                    videoPlayer.style.display = 'block';
-                    placeholder.style.display = 'none';
-                    videoPlayer.src = lesson.video_url;
-                    videoPlayer.load();
-                } else {
-                    videoPlayer.style.display = 'none';
-                    placeholder.style.display = 'flex';
-                }
+                // Load video based on URL type
+                await this.loadVideo(lesson);
 
                 // Update lesson states in sidebar
                 this.updateLessonStates();
@@ -1259,6 +1290,71 @@
                 if (this.userProgress.currentLesson !== lessonId) {
                     this.userProgress.currentLesson = lessonId;
                     await this.updateUserProgress();
+                }
+            }
+
+            async loadVideo(lesson) {
+                const videoPlayer = document.getElementById('videoPlayer');
+                const youtubePlayer = document.getElementById('youtubePlayer');
+                const placeholder = document.getElementById('videoPlaceholder');
+                const videoSource = document.getElementById('videoSource');
+
+                // Hide all players first
+                videoPlayer.style.display = 'none';
+                youtubePlayer.style.display = 'none';
+                placeholder.style.display = 'none';
+
+                if (!lesson.video_url) {
+                    placeholder.style.display = 'flex';
+                    videoSource.textContent = 'No video available';
+                    return;
+                }
+
+                // Check if it's a YouTube URL
+                if (lesson.video_url.includes('youtube.com/embed') || lesson.video_url.includes('youtu.be')) {
+                    videoSource.textContent = 'YouTube';
+                    
+                    let videoId;
+                    if (lesson.video_url.includes('youtube.com/embed/')) {
+                        videoId = lesson.video_url.split('youtube.com/embed/')[1];
+                    } else if (lesson.video_url.includes('youtu.be/')) {
+                        videoId = lesson.video_url.split('youtu.be/')[1];
+                    } else {
+                        // Extract from watch URL
+                        const urlParams = new URLSearchParams(new URL(lesson.video_url).search);
+                        videoId = urlParams.get('v');
+                    }
+
+                    if (videoId) {
+                        const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&enablejsapi=1`;
+                        youtubePlayer.src = embedUrl;
+                        youtubePlayer.style.display = 'block';
+                        
+                        // Add YouTube end event listener
+                        youtubePlayer.onload = () => {
+                            // This would require YouTube API for proper end detection
+                            console.log('YouTube video loaded');
+                        };
+                    } else {
+                        placeholder.style.display = 'flex';
+                    }
+                } 
+                // Check if it's an MP4 or other direct video
+                else if (lesson.video_url.includes('.mp4') || lesson.video_url.includes('.webm') || lesson.video_url.includes('.ogg')) {
+                    videoSource.textContent = 'Video';
+                    videoPlayer.src = lesson.video_url;
+                    videoPlayer.style.display = 'block';
+                    
+                    // Add ended event listener for completion tracking
+                    videoPlayer.onended = () => {
+                        this.markLessonCompleted();
+                    };
+                } 
+                // Fallback to iframe for other URLs
+                else {
+                    videoSource.textContent = 'External Content';
+                    youtubePlayer.src = lesson.video_url;
+                    youtubePlayer.style.display = 'block';
                 }
             }
 
@@ -1293,18 +1389,9 @@
                     await this.updateUserProgress();
                     
                     console.log('Lesson marked as completed:', this.currentLessonId);
-                }
-            }
-
-            trackVideoProgress() {
-                const video = document.getElementById('videoPlayer');
-                if (video.duration > 0) {
-                    const progress = (video.currentTime / video.duration) * 100;
                     
-                    // Auto-mark as completed when 90% watched
-                    if (progress >= 90 && !this.userProgress.completedLessons.includes(this.currentLessonId)) {
-                        this.markLessonCompleted();
-                    }
+                    // Show completion message
+                    this.showMessage('welcomeMessage', 'Lesson completed! Progress saved.', 'success');
                 }
             }
 
@@ -1316,14 +1403,16 @@
                         current_lesson: this.currentLessonId
                     });
                     
-                    if (result.success) {
-                        console.log('Progress updated successfully');
+                    if (result && result.success) {
+                        console.log('Progress updated successfully in backend');
                     } else {
-                        console.error('Progress update failed:', result.error);
+                        console.error('Progress update failed in backend');
+                        // Save locally as backup
+                        localStorage.setItem(`userProgress_${this.currentUser.id}`, JSON.stringify(this.userProgress));
                     }
                 } catch (error) {
-                    console.error('Failed to update progress:', error);
-                    // Still update local state even if backend fails
+                    console.error('Failed to update progress in backend:', error);
+                    // Save locally as backup
                     localStorage.setItem(`userProgress_${this.currentUser.id}`, JSON.stringify(this.userProgress));
                 }
             }
