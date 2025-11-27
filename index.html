@@ -117,6 +117,7 @@
             cursor: pointer;
             transition: background 0.2s;
             margin-top: 10px;
+            position: relative;
         }
 
         .auth-btn:hover {
@@ -517,6 +518,20 @@
             box-shadow: none;
         }
 
+        /* Refresh Button */
+        .refresh-btn {
+            background: var(--success);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: 10px;
+        }
+
         /* Responsive Styles */
         @media (max-width: 992px) {
             .sidebar {
@@ -681,6 +696,9 @@
                 </button>
                 <div class="user-info">
                     <span id="welcomeMessage">Welcome, Student!</span>
+                    <button class="refresh-btn" id="refreshBtn">
+                        <i class="fas fa-sync-alt"></i> Refresh Content
+                    </button>
                     <div class="user-avatar" id="userAvatar">U</div>
                     <button class="logout-btn" id="logoutBtn">
                         <i class="fas fa-sign-out-alt"></i> Logout
@@ -746,6 +764,7 @@
                 document.getElementById('showRegister').addEventListener('click', () => this.showRegisterForm());
                 document.getElementById('showLogin').addEventListener('click', () => this.showLoginForm());
                 document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
+                document.getElementById('refreshBtn').addEventListener('click', () => this.refreshContent());
 
                 // Demo accounts
                 document.querySelectorAll('.demo-account').forEach(account => {
@@ -767,72 +786,76 @@
                 document.getElementById('videoPlayer').addEventListener('ended', () => {
                     this.markLessonCompleted();
                 });
-            }
 
-            async callAPI(action, params = {}) {
-                try {
-                    const urlParams = new URLSearchParams({
-                        action,
-                        ...params
-                    });
-
-                    const response = await fetch(`${API_URL}?${urlParams}`, {
-                        method: 'GET',
-                        mode: 'no-cors'
-                    });
-
-                    // Note: Due to CORS limitations with Google Apps Script, we'll use a different approach
-                    // For production, you'd need to deploy with proper CORS headers or use a proxy
-                    return await this.callAPIWithProxy(action, params);
-                } catch (error) {
-                    console.error('API call failed:', error);
-                    throw error;
-                }
-            }
-
-            // Alternative approach using JSONP-like technique
-            async callAPIWithProxy(action, params = {}) {
-                return new Promise((resolve, reject) => {
-                    // Create a unique callback name
-                    const callbackName = 'jsonp_callback_' + Math.round(100000 * Math.random());
-                    
-                    // Create script element
-                    const script = document.createElement('script');
-                    const urlParams = new URLSearchParams({
-                        action,
-                        ...params,
-                        callback: callbackName
-                    });
-                    
-                    script.src = `${API_URL}?${urlParams}`;
-                    
-                    // Define the callback function
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        resolve(data);
-                    };
-                    
-                    // Handle errors
-                    script.onerror = () => {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        reject(new Error('JSONP request failed'));
-                    };
-                    
-                    document.body.appendChild(script);
+                // Video progress tracking
+                document.getElementById('videoPlayer').addEventListener('timeupdate', () => {
+                    this.trackVideoProgress();
                 });
             }
 
-            // Simple fetch with error handling for demo
-            async callAPIDirect(action, params = {}) {
+            // CORS Proxy Solution
+            async callAPI(action, params = {}) {
+                // Use CORS proxy to bypass restrictions
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = API_URL;
+                
                 const formData = new URLSearchParams();
                 formData.append('action', action);
+                
+                // Add all parameters
                 Object.keys(params).forEach(key => {
                     formData.append(key, params[key]);
                 });
 
                 try {
+                    console.log(`Calling API: ${action}`, params);
+                    
+                    const response = await fetch(proxyUrl + targetUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: formData
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const text = await response.text();
+                    console.log('Raw response:', text);
+                    
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        console.error('JSON parse error:', e);
+                        // If JSON parsing fails, try to extract JSON from the response
+                        const jsonMatch = text.match(/\{.*\}/);
+                        if (jsonMatch) {
+                            return JSON.parse(jsonMatch[0]);
+                        }
+                        throw new Error('Invalid JSON response');
+                    }
+                } catch (error) {
+                    console.error('API call failed:', error);
+                    // Fallback to direct call without proxy
+                    return await this.callAPIDirect(action, params);
+                }
+            }
+
+            // Direct call without proxy (for when proxy fails)
+            async callAPIDirect(action, params = {}) {
+                const formData = new URLSearchParams();
+                formData.append('action', action);
+                
+                Object.keys(params).forEach(key => {
+                    formData.append(key, params[key]);
+                });
+
+                try {
+                    console.log(`Direct API call: ${action}`, params);
+                    
                     const response = await fetch(API_URL, {
                         method: 'POST',
                         body: formData,
@@ -841,19 +864,36 @@
                         },
                     });
                     
-                    const data = await response.json();
-                    return data;
+                    const text = await response.text();
+                    console.log('Direct response:', text);
+                    
+                    try {
+                        return JSON.parse(text);
+                    } catch (e) {
+                        const jsonMatch = text.match(/\{.*\}/);
+                        if (jsonMatch) {
+                            return JSON.parse(jsonMatch[0]);
+                        }
+                        throw new Error('Invalid JSON response');
+                    }
                 } catch (error) {
-                    console.error('API call failed:', error);
-                    // For demo purposes, we'll use mock data if API fails
+                    console.error('Direct API call failed:', error);
                     return this.getMockData(action, params);
                 }
             }
 
-            // Mock data for demo when API is not accessible
+            // Mock data for complete fallback
             getMockData(action, params) {
+                console.log('Using mock data for:', action);
                 const mockData = {
-                    register: { success: true, user: { id: Date.now(), name: params.name, email: params.email } },
+                    register: { 
+                        success: true, 
+                        user: { 
+                            id: Date.now(), 
+                            name: params.name, 
+                            email: params.email 
+                        } 
+                    },
                     login: { 
                         success: true, 
                         user: { 
@@ -889,10 +929,13 @@
                         progress: {
                             completedLessons: params.user_id == 1 ? [1, 2] : [1],
                             currentLesson: 1,
-                            lastUpdated: new Date()
+                            lastUpdated: new Date().toISOString()
                         }
                     },
-                    updateProgress: { success: true },
+                    updateProgress: { 
+                        success: true,
+                        message: "Progress updated successfully"
+                    },
                     getLesson: {
                         lesson: {
                             id: 1,
@@ -926,7 +969,7 @@
                     if (!button.querySelector('.loading')) {
                         const loading = document.createElement('span');
                         loading.className = 'loading';
-                        button.prepend(loading);
+                        button.insertBefore(loading, btn);
                     }
                 } else {
                     button.disabled = false;
@@ -959,25 +1002,19 @@
                 this.showLoading(loginBtn, true);
 
                 try {
-                    const result = await this.callAPIDirect('login', { email, password });
+                    const result = await this.callAPI('login', { email, password });
                     
                     if (result.success) {
                         this.currentUser = result.user;
                         this.startSession();
                         await this.showApp();
+                        this.showMessage('loginMessage', 'Login successful!', 'success');
                     } else {
                         this.showMessage('loginMessage', result.error || 'Login failed', 'error');
                     }
                 } catch (error) {
-                    this.showMessage('loginMessage', 'Login failed. Using demo mode.', 'error');
-                    // Fallback to mock login for demo
-                    this.currentUser = {
-                        id: email === 'student@example.com' ? 1 : 2,
-                        name: email === 'student@example.com' ? 'Student User' : 'John Doe',
-                        email: email
-                    };
-                    this.startSession();
-                    await this.showApp();
+                    console.error('Login error:', error);
+                    this.showMessage('loginMessage', 'Login failed. Please try again.', 'error');
                 } finally {
                     this.showLoading(loginBtn, false);
                 }
@@ -1003,7 +1040,7 @@
                 this.showLoading(registerBtn, true);
 
                 try {
-                    const result = await this.callAPIDirect('register', { name, email, password });
+                    const result = await this.callAPI('register', { name, email, password });
                     
                     if (result.success) {
                         this.currentUser = result.user;
@@ -1014,15 +1051,8 @@
                         this.showMessage('registerMessage', result.error || 'Registration failed', 'error');
                     }
                 } catch (error) {
-                    this.showMessage('registerMessage', 'Registration failed. Using demo mode.', 'error');
-                    // Fallback to mock registration for demo
-                    this.currentUser = {
-                        id: Date.now(),
-                        name: name,
-                        email: email
-                    };
-                    this.startSession();
-                    await this.showApp();
+                    console.error('Registration error:', error);
+                    this.showMessage('registerMessage', 'Registration failed. Please try again.', 'error');
                 } finally {
                     this.showLoading(registerBtn, false);
                 }
@@ -1048,6 +1078,14 @@
                 this.showAuth();
             }
 
+            async refreshContent() {
+                if (this.currentUser) {
+                    await this.loadCourseContent();
+                    await this.loadUserProgress();
+                    this.showMessage('welcomeMessage', 'Content refreshed successfully!', 'success');
+                }
+            }
+
             showAuth() {
                 document.getElementById('authContainer').style.display = 'flex';
                 document.getElementById('appContainer').style.display = 'none';
@@ -1068,10 +1106,11 @@
                 await this.loadCourseContent();
                 await this.loadUserProgress();
                 
-                // Load first lesson or current lesson
-                const firstLesson = this.allLessons[0];
-                if (firstLesson) {
-                    this.loadLesson(this.userProgress?.currentLesson || firstLesson.id);
+                // Load current lesson or first lesson
+                if (this.userProgress && this.userProgress.currentLesson) {
+                    this.loadLesson(this.userProgress.currentLesson);
+                } else if (this.allLessons.length > 0) {
+                    this.loadLesson(this.allLessons[0].id);
                 }
             }
 
@@ -1082,26 +1121,35 @@
 
             async loadCourseContent() {
                 try {
-                    const result = await this.callAPIDirect('getCourseContent');
+                    const modulesContainer = document.getElementById('courseModules');
+                    modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;"><div class="loading"></div> Loading course content...</div>';
+                    
+                    const result = await this.callAPI('getCourseContent');
                     this.courseContent = result.modules;
                     this.allLessons = this.courseContent.flatMap(module => module.lessons);
                     this.renderCourseContent();
+                    
+                    console.log('Course content loaded:', this.courseContent);
                 } catch (error) {
                     console.error('Failed to load course content:', error);
+                    const modulesContainer = document.getElementById('courseModules');
+                    modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;">Failed to load course content. Please try refreshing.</div>';
                 }
             }
 
             async loadUserProgress() {
                 try {
-                    const result = await this.callAPIDirect('getUserProgress', { user_id: this.currentUser.id });
+                    const result = await this.callAPI('getUserProgress', { user_id: this.currentUser.id });
                     this.userProgress = result.progress;
                     this.updateProgressDisplay();
+                    
+                    console.log('User progress loaded:', this.userProgress);
                 } catch (error) {
                     console.error('Failed to load user progress:', error);
                     // Default progress
                     this.userProgress = {
                         completedLessons: [],
-                        currentLesson: 1
+                        currentLesson: this.allLessons.length > 0 ? this.allLessons[0].id : null
                     };
                 }
             }
@@ -1160,15 +1208,22 @@
                 });
 
                 // Open first module by default
-                const firstModule = modulesContainer.querySelector('.module-header');
+                const firstModule = modulesContainer.querySelector('.module');
                 if (firstModule) {
-                    firstModule.click();
+                    const firstHeader = firstModule.querySelector('.module-header');
+                    firstHeader.click();
                 }
+
+                // Update lesson completion states
+                this.updateLessonStates();
             }
 
             async loadLesson(lessonId) {
                 const lesson = this.allLessons.find(l => l.id === lessonId);
-                if (!lesson) return;
+                if (!lesson) {
+                    console.error('Lesson not found:', lessonId);
+                    return;
+                }
 
                 this.currentLessonId = lessonId;
                 
@@ -1188,56 +1243,88 @@
                     videoPlayer.style.display = 'block';
                     placeholder.style.display = 'none';
                     videoPlayer.src = lesson.video_url;
+                    videoPlayer.load();
                 } else {
                     videoPlayer.style.display = 'none';
                     placeholder.style.display = 'flex';
                 }
 
                 // Update lesson states in sidebar
-                document.querySelectorAll('.lesson').forEach(lessonEl => {
-                    const elLessonId = parseInt(lessonEl.getAttribute('data-lesson-id'));
-                    lessonEl.classList.remove('active');
-                    if (elLessonId === lessonId) {
-                        lessonEl.classList.add('active');
-                    }
-                    if (this.userProgress.completedLessons.includes(elLessonId)) {
-                        lessonEl.classList.add('completed');
-                    }
-                });
+                this.updateLessonStates();
 
                 // Update navigation buttons
                 this.updateNavigationButtons();
 
                 // Update user progress in backend
-                await this.updateUserProgress();
+                if (this.userProgress.currentLesson !== lessonId) {
+                    this.userProgress.currentLesson = lessonId;
+                    await this.updateUserProgress();
+                }
+            }
+
+            updateLessonStates() {
+                document.querySelectorAll('.lesson').forEach(lessonEl => {
+                    const lessonId = parseInt(lessonEl.getAttribute('data-lesson-id'));
+                    
+                    // Remove all states
+                    lessonEl.classList.remove('active', 'completed');
+                    
+                    // Set active state
+                    if (lessonId === this.currentLessonId) {
+                        lessonEl.classList.add('active');
+                    }
+                    
+                    // Set completed state
+                    if (this.userProgress.completedLessons.includes(lessonId)) {
+                        lessonEl.classList.add('completed');
+                    }
+                });
             }
 
             async markLessonCompleted() {
                 if (!this.userProgress.completedLessons.includes(this.currentLessonId)) {
                     this.userProgress.completedLessons.push(this.currentLessonId);
                     
-                    // Update UI
-                    document.querySelectorAll('.lesson').forEach(lessonEl => {
-                        const lessonId = parseInt(lessonEl.getAttribute('data-lesson-id'));
-                        if (lessonId === this.currentLessonId) {
-                            lessonEl.classList.add('completed');
-                        }
-                    });
-                    
+                    // Update UI immediately
+                    this.updateLessonStates();
                     this.updateProgressDisplay();
+                    
+                    // Save to backend
                     await this.updateUserProgress();
+                    
+                    console.log('Lesson marked as completed:', this.currentLessonId);
+                }
+            }
+
+            trackVideoProgress() {
+                const video = document.getElementById('videoPlayer');
+                if (video.duration > 0) {
+                    const progress = (video.currentTime / video.duration) * 100;
+                    
+                    // Auto-mark as completed when 90% watched
+                    if (progress >= 90 && !this.userProgress.completedLessons.includes(this.currentLessonId)) {
+                        this.markLessonCompleted();
+                    }
                 }
             }
 
             async updateUserProgress() {
                 try {
-                    await this.callAPIDirect('updateProgress', {
+                    const result = await this.callAPI('updateProgress', {
                         user_id: this.currentUser.id,
                         completed_lessons: this.userProgress.completedLessons.join(','),
                         current_lesson: this.currentLessonId
                     });
+                    
+                    if (result.success) {
+                        console.log('Progress updated successfully');
+                    } else {
+                        console.error('Progress update failed:', result.error);
+                    }
                 } catch (error) {
                     console.error('Failed to update progress:', error);
+                    // Still update local state even if backend fails
+                    localStorage.setItem(`userProgress_${this.currentUser.id}`, JSON.stringify(this.userProgress));
                 }
             }
 
@@ -1274,7 +1361,10 @@
         }
 
         // Initialize the application
-        const app = new CourseApp();
+        document.addEventListener('DOMContentLoaded', () => {
+            const app = new CourseApp();
+            window.courseApp = app; // Make available globally for debugging
+        });
     </script>
 </body>
 </html>
