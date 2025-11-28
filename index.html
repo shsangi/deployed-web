@@ -3,1456 +3,1279 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Course Learning Platform</title>
+    <title>LearnHub Pro - Professional Online Learning</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        }
-
-        :root {
-            --primary: #2d2d39;
-            --secondary: #ff4757;
-            --accent: #5352ed;
-            --light: #f1f2f6;
-            --dark: #2f3542;
-            --success: #2ed573;
-            --warning: #ffa502;
-        }
-
-        body {
-            background-color: #f8f9fa;
-            color: var(--dark);
-            min-height: 100vh;
-        }
-
-        /* Auth Container */
-        .auth-container {
-            display: flex;
-            width: 100%;
-            min-height: 100vh;
-        }
-
-        .auth-left {
-            flex: 1;
-            background: linear-gradient(135deg, var(--primary), var(--accent));
-            color: white;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-        }
-
-        .auth-left h1 {
-            font-size: 2.5rem;
-            margin-bottom: 20px;
-            text-align: center;
-        }
-
-        .auth-left p {
-            font-size: 1.2rem;
-            text-align: center;
-            max-width: 500px;
-            line-height: 1.6;
-        }
-
-        .auth-right {
-            flex: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 40px;
-        }
-
-        .auth-form {
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .auth-form h2 {
-            margin-bottom: 30px;
-            color: var(--primary);
-            text-align: center;
-            font-size: 1.8rem;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: var(--dark);
-        }
-
-        .form-group input {
-            width: 100%;
-            padding: 14px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 1rem;
-            transition: border 0.3s;
-        }
-
-        .form-group input:focus {
-            border-color: var(--accent);
-            outline: none;
-        }
-
-        .auth-btn {
-            width: 100%;
-            padding: 14px;
-            background: var(--accent);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 10px;
-            position: relative;
-        }
-
-        .auth-btn:hover {
-            background: #4240e9;
-        }
-
-        .auth-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-        }
-
-        .auth-switch {
-            text-align: center;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
-        }
-
-        .auth-switch a {
-            color: var(--accent);
-            text-decoration: none;
-            font-weight: 500;
-            cursor: pointer;
-        }
-
-        .auth-switch a:hover {
-            text-decoration: underline;
-        }
-
-        .demo-accounts {
-            margin-top: 30px;
-            padding: 20px;
-            background: #f8f9fa;
-            border-radius: 8px;
-            border-left: 4px solid var(--accent);
-        }
-
-        .demo-accounts h3 {
-            margin-bottom: 15px;
-            color: var(--primary);
-        }
-
-        .demo-account {
-            padding: 10px;
-            background: white;
-            border-radius: 6px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
-
-        .demo-account:hover {
-            background: #e9ecef;
-        }
-
-        .demo-account:last-child {
-            margin-bottom: 0;
-        }
-
-        .message {
-            padding: 12px;
-            border-radius: 6px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid #ffffff;
-            border-radius: 50%;
-            border-top-color: transparent;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-
-        /* Main App Styles */
-        .app-container {
-            display: none;
-            width: 100%;
-        }
-
-        /* Sidebar/Drawer Styles */
-        .sidebar {
-            width: 280px;
-            background: var(--primary);
-            color: white;
-            height: 100vh;
-            position: fixed;
-            overflow-y: auto;
-            transition: transform 0.3s ease;
-            z-index: 1000;
-        }
-
-        .sidebar-header {
-            padding: 20px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .sidebar-header h2 {
-            font-size: 1.4rem;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .sidebar-header h2 i {
-            color: var(--secondary);
-        }
-
-        .close-sidebar {
-            background: none;
-            border: none;
-            color: white;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: none;
-        }
-
-        .course-progress {
-            padding: 20px;
-            background: rgba(0,0,0,0.2);
-            margin: 15px;
-            border-radius: 8px;
-        }
-
-        .progress-text {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-
-        .progress-bar {
-            height: 6px;
-            background: rgba(255,255,255,0.2);
-            border-radius: 3px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: var(--success);
-            border-radius: 3px;
-            width: 0%;
-        }
-
-        .course-modules {
-            padding: 0 15px;
-        }
-
-        .module {
-            margin-bottom: 10px;
-        }
-
-        .module-header {
-            padding: 12px 15px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 6px;
-            cursor: pointer;
+        /* Previous CSS remains the same, adding new styles for compact dashboard */
+        
+        /* Compact Dashboard Styles */
+        .dashboard-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-
-        .module-header.active {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .module-content {
-            padding-left: 20px;
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-
-        .module-content.open {
-            max-height: 500px;
-        }
-
-        .lesson {
-            padding: 10px 15px;
-            border-left: 2px solid rgba(255,255,255,0.1);
-            margin: 8px 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-
-        .lesson:hover {
-            background: rgba(255,255,255,0.05);
-        }
-
-        .lesson.active {
-            border-left-color: var(--accent);
-            background: rgba(83, 82, 237, 0.1);
-        }
-
-        .lesson.completed i {
-            color: var(--success);
-        }
-
-        .lesson-duration {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.6);
-            margin-left: auto;
-        }
-
-        /* Main Content Styles */
-        .main-content {
-            flex: 1;
-            margin-left: 280px;
-            transition: margin-left 0.3s ease;
-        }
-
-        .top-nav {
-            background: white;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .menu-toggle {
-            background: none;
-            border: none;
-            font-size: 1.2rem;
-            cursor: pointer;
-            color: var(--dark);
-            display: none;
-        }
-
-        .user-info {
-            display: flex;
-            align-items: center;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
             gap: 15px;
         }
 
-        .user-avatar {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: var(--accent);
+        .dashboard-controls {
             display: flex;
+            gap: 10px;
             align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
         }
 
-        .logout-btn {
-            background: none;
+        .stats-toggle-btn {
+            background: var(--primary);
+            color: white;
             border: none;
-            color: var(--dark);
+            padding: 10px 15px;
+            border-radius: var(--border-radius);
             cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            transition: var(--transition);
+        }
+
+        .stats-toggle-btn:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+        }
+
+        .compact-progress-section {
+            background: var(--gradient);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            display: none; /* Hidden by default */
+            animation: slideDown 0.3s ease;
+        }
+
+        .compact-progress-section.show {
+            display: block;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Auto-refresh indicator */
+        .refresh-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+
+        .refresh-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+
+        /* Mini stats for quick view */
+        .mini-stats {
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .mini-stat-item {
             display: flex;
             align-items: center;
             gap: 5px;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
         }
 
-        .video-container {
-            padding: 30px;
-            max-width: 1200px;
+        .mini-stat-value {
+            font-weight: 700;
+            color: var(--warning);
         }
 
-        .video-player {
-            background: var(--dark);
-            border-radius: 8px;
-            overflow: hidden;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            margin-bottom: 25px;
-            position: relative;
-        }
-
-        /* Video Player Styles */
-        #videoPlayer {
-            width: 100%;
-            height: 400px;
-            background: #000;
-        }
-
-        #youtubePlayer {
-            width: 100%;
-            height: 400px;
-            border: none;
-        }
-
-        .video-placeholder {
-            width: 100%;
-            height: 400px;
-            background: linear-gradient(135deg, #2d2d39, #1e1e28);
+        /* Enhanced user info with quick stats */
+        .user-info-compact {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            justify-content: center;
-            color: white;
+            gap: 10px;
         }
 
-        .video-info {
-            padding: 20px 0;
-        }
-
-        .video-title {
-            font-size: 1.5rem;
-            margin-bottom: 10px;
-        }
-
-        .video-meta {
-            display: flex;
-            gap: 20px;
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 20px;
-        }
-
-        .lesson-description {
-            line-height: 1.6;
-            margin-bottom: 30px;
-        }
-
-        .navigation-buttons {
-            display: flex;
-            justify-content: space-between;
-            margin-top: 30px;
-        }
-
-        .nav-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 6px;
+        .user-stats-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
             font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.2s;
         }
 
-        .prev-btn {
-            background: white;
-            color: var(--dark);
-            border: 1px solid #ddd;
-        }
-
-        .next-btn {
-            background: var(--accent);
-            color: white;
-        }
-
-        .nav-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-        }
-
-        .nav-btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        /* Refresh Button */
-        .refresh-btn {
-            background: var(--success);
-            color: white;
-            border: none;
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin-left: 10px;
-        }
-
-        /* Video Source Indicator */
-        .video-source {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(0,0,0,0.7);
-            color: white;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            z-index: 10;
-        }
-
-        /* Responsive Styles */
-        @media (max-width: 992px) {
-            .sidebar {
-                transform: translateX(-100%);
-            }
-            
-            .sidebar.open {
-                transform: translateX(0);
-            }
-            
-            .main-content {
-                margin-left: 0;
-            }
-            
-            .menu-toggle, .close-sidebar {
-                display: block;
-            }
-            
-            #videoPlayer, #youtubePlayer, .video-placeholder {
-                height: 300px;
-            }
-
-            .auth-container {
+        /* Mobile optimizations for new layout */
+        @media (max-width: 768px) {
+            .dashboard-header {
                 flex-direction: column;
+                align-items: stretch;
             }
 
-            .auth-left, .auth-right {
-                flex: none;
+            .dashboard-controls {
+                justify-content: space-between;
             }
 
-            .auth-left {
-                padding: 30px 20px;
-            }
-        }
-
-        @media (max-width: 576px) {
-            .video-container {
-                padding: 15px;
-            }
-            
-            #videoPlayer, #youtubePlayer, .video-placeholder {
-                height: 200px;
-            }
-            
-            .video-placeholder i {
-                font-size: 2.5rem;
+            .mini-stats {
+                justify-content: center;
+                flex-wrap: wrap;
             }
 
-            .auth-left h1 {
-                font-size: 2rem;
-            }
-
-            .auth-left p {
-                font-size: 1rem;
+            .user-info-compact {
+                justify-content: center;
+                text-align: center;
             }
         }
     </style>
 </head>
-<body>
-    <!-- Auth Container (Login/Register) -->
-    <div class="auth-container" id="authContainer">
-        <div class="auth-left">
-            <h1>Welcome to CodeMaster Academy</h1>
-            <p>Access our exclusive collection of private video tutorials. Track your progress, bookmark lessons, and become a coding expert at your own pace.</p>
-        </div>
-        <div class="auth-right">
-            <div class="auth-form" id="loginForm">
-                <h2>Login to Your Account</h2>
-                <div class="message" id="loginMessage"></div>
-                <div class="form-group">
-                    <label for="loginEmail">Email</label>
-                    <input type="email" id="loginEmail" placeholder="Enter your email">
+<body class="touch-optimized">
+    <!-- Authentication Section -->
+    <div class="container auth-container" id="auth-container">
+        <!-- Login Form -->
+        <div class="card" id="login-card" style="max-width: 400px;">
+            <div class="card-header" style="text-align: center;">
+                <div class="logo" style="justify-content: center; margin-bottom: 20px;">
+                    <i class="fas fa-graduation-cap" style="font-size: 3rem; color: var(--primary);"></i>
                 </div>
+                <h2 class="card-title">Welcome to LearnHub</h2>
+                <p class="card-subtitle">Sign in to continue your learning journey</p>
+            </div>
+            
+            <form id="login-form">
                 <div class="form-group">
-                    <label for="loginPassword">Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password">
+                    <label for="login-email">Email Address</label>
+                    <input type="email" id="login-email" name="email" placeholder="Enter your email" required>
                 </div>
-                <button class="auth-btn" id="loginBtn">
-                    <span class="btn-text">Login to Course</span>
+                
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" name="password" placeholder="Enter your password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Sign In
                 </button>
-
-                <div class="auth-switch">
-                    Don't have an account? <a id="showRegister">Register here</a>
+            </form>
+            
+            <div class="auth-switch">
+                Don't have an account? <a id="show-signup">Sign up</a>
+            </div>
+            
+            <div id="login-response" class="response-message"></div>
+        </div>
+        
+        <!-- Signup Form -->
+        <div class="card" id="signup-card" style="display: none; max-width: 400px;">
+            <div class="card-header" style="text-align: center;">
+                <div class="logo" style="justify-content: center; margin-bottom: 20px;">
+                    <i class="fas fa-user-plus" style="font-size: 3rem; color: var(--primary);"></i>
                 </div>
-
-                <div class="demo-accounts">
-                    <h3>Demo Accounts (Click to use):</h3>
-                    <div class="demo-account" data-email="student@example.com" data-password="password123">
-                        <strong>Student Account</strong><br>
-                        Email: student@example.com | Password: password123
+                <h2 class="card-title">Join LearnHub</h2>
+                <p class="card-subtitle">Create your account to start learning</p>
+            </div>
+            
+            <form id="signup-form">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" name="fullName" placeholder="Enter your full name" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-email">Email Address</label>
+                    <input type="email" id="signup-email" name="email" placeholder="Enter your email" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" name="password" placeholder="Create a password" required minlength="6">
+                </div>
+                
+                <div class="form-group">
+                    <label for="signup-confirm-password">Confirm Password</label>
+                    <input type="password" id="signup-confirm-password" name="confirmPassword" placeholder="Confirm your password" required>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <i class="fas fa-user-plus"></i>
+                    Create Account
+                </button>
+            </form>
+            
+            <div class="auth-switch">
+                Already have an account? <a id="show-login">Sign in</a>
+            </div>
+            
+            <div id="signup-response" class="response-message"></div>
+        </div>
+    </div>
+    
+    <!-- Main Application Section -->
+    <div class="app-container" id="app-container">
+        <!-- Professional Header -->
+        <div class="professional-header">
+            <div class="container">
+                <div class="header-content">
+                    <div class="logo">
+                        <i class="fas fa-graduation-cap"></i>
+                        <div class="logo-text">LearnHub Pro</div>
                     </div>
-                    <div class="demo-account" data-email="john.doe@example.com" data-password="password123">
-                        <strong>John Doe</strong><br>
-                        Email: john.doe@example.com | Password: password123
+                    <div class="user-info">
+                        <div class="user-avatar" id="user-avatar">U</div>
+                        <div class="user-info-compact">
+                            <div>
+                                <div id="user-name">User Name</div>
+                                <div class="user-stats-badge" id="user-stats-badge">
+                                    <span id="user-courses-count">0</span> courses • <span id="user-progress-percent">0%</span>
+                                </div>
+                            </div>
+                            <div class="dashboard-controls">
+                                <button class="stats-toggle-btn" id="stats-toggle-btn" title="Toggle Statistics">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <span class="stats-toggle-text">Stats</span>
+                                </button>
+                                <button class="btn btn-outline" id="logout-button" style="padding: 8px 15px;">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span class="logout-text">Logout</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+        </div>
 
-            <div class="auth-form" id="registerForm" style="display: none;">
-                <h2>Create New Account</h2>
-                <div class="message" id="registerMessage"></div>
-                <div class="form-group">
-                    <label for="registerName">Full Name</label>
-                    <input type="text" id="registerName" placeholder="Enter your full name">
+        <div class="container">
+            <!-- Dashboard View -->
+            <div id="dashboard-view">
+                <!-- Compact Dashboard Header -->
+                <div class="dashboard-header">
+                    <div>
+                        <h2 style="margin-bottom: 5px; color: var(--dark);">Your Learning Dashboard</h2>
+                        <p style="color: var(--gray);">Continue your journey to mastery</p>
+                    </div>
+                    
+                    <div class="dashboard-controls">
+                        <div class="refresh-status" id="refresh-status">
+                            <div class="refresh-indicator"></div>
+                            <span>Auto-updating</span>
+                            <span id="last-updated">Just now</span>
+                        </div>
+                        <div class="mini-stats" id="mini-stats">
+                            <div class="mini-stat-item">
+                                <i class="fas fa-book"></i>
+                                <span class="mini-stat-value" id="mini-total-courses">0</span>
+                            </div>
+                            <div class="mini-stat-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span class="mini-stat-value" id="mini-completed-lessons">0</span>
+                            </div>
+                            <div class="mini-stat-item">
+                                <i class="fas fa-chart-line"></i>
+                                <span class="mini-stat-value" id="mini-completion-rate">0%</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <label for="registerEmail">Email</label>
-                    <input type="email" id="registerEmail" placeholder="Enter your email">
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">Password</label>
-                    <input type="password" id="registerPassword" placeholder="Create a password">
-                </div>
-                <div class="form-group">
-                    <label for="registerConfirmPassword">Confirm Password</label>
-                    <input type="password" id="registerConfirmPassword" placeholder="Confirm your password">
-                </div>
-                <button class="auth-btn" id="registerBtn">
-                    <span class="btn-text">Create Account</span>
-                </button>
 
-                <div class="auth-switch">
-                    Already have an account? <a id="showLogin">Login here</a>
+                <!-- Compact Progress Section (Hidden by Default) -->
+                <div class="compact-progress-section" id="compact-progress-section">
+                    <h3 style="margin-bottom: 15px;">Your Learning Statistics</h3>
+                    
+                    <div class="progress-stats">
+                        <div class="stat-card">
+                            <div class="stat-number" id="total-courses">0</div>
+                            <div class="stat-label">Courses Enrolled</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="completed-lessons">0</div>
+                            <div class="stat-label">Lessons Completed</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="learning-hours">0</div>
+                            <div class="stat-label">Hours Learned</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number" id="completion-rate">0%</div>
+                            <div class="stat-label">Overall Progress</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Courses Section -->
+                <div class="card">
+                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+                        <div>
+                            <h2 style="margin-bottom: 5px; color: var(--dark);">Available Courses</h2>
+                            <p style="color: var(--gray);">Expand your skills with our professional courses</p>
+                        </div>
+                        <button class="btn btn-outline" id="manual-refresh-btn" style="display: none;">
+                            <i class="fas fa-sync-alt"></i>
+                            Refresh Courses
+                        </button>
+                    </div>
+                    
+                    <div class="course-grid" id="course-grid">
+                        <!-- Skeleton loading -->
+                        <div class="course-card">
+                            <div class="skeleton" style="height: 180px; width: 100%;"></div>
+                            <div class="course-content">
+                                <div class="skeleton" style="height: 20px; width: 80px; margin-bottom: 10px;"></div>
+                                <div class="skeleton" style="height: 24px; width: 100%; margin-bottom: 10px;"></div>
+                                <div class="skeleton" style="height: 60px; width: 100%; margin-bottom: 15px;"></div>
+                                <div class="course-meta">
+                                    <div class="skeleton" style="height: 20px; width: 120px;"></div>
+                                    <div class="skeleton" style="height: 8px; width: 100px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="course-card">
+                            <div class="skeleton" style="height: 180px; width: 100%;"></div>
+                            <div class="course-content">
+                                <div class="skeleton" style="height: 20px; width: 80px; margin-bottom: 10px;"></div>
+                                <div class="skeleton" style="height: 24px; width: 100%; margin-bottom: 10px;"></div>
+                                <div class="skeleton" style="height: 60px; width: 100%; margin-bottom: 15px;"></div>
+                                <div class="course-meta">
+                                    <div class="skeleton" style="height: 20px; width: 120px;"></div>
+                                    <div class="skeleton" style="height: 8px; width: 100px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Course Learning View -->
+            <div id="course-view" style="display: none;">
+                <!-- Mobile Navigation Controls -->
+                <div class="mobile-nav-controls">
+                    <button class="btn btn-outline" id="back-to-dashboard-mobile">
+                        <i class="fas fa-arrow-left"></i>
+                        Back
+                    </button>
+                    <button class="btn btn-outline mobile-sidebar-toggle" id="mobile-sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                        Lessons
+                    </button>
+                </div>
+
+                <!-- Mobile Sidebar Overlay -->
+                <div class="sidebar-mobile-overlay" id="sidebar-overlay"></div>
+                
+                <!-- Mobile Sidebar -->
+                <div class="sidebar-mobile" id="sidebar-mobile">
+                    <button class="sidebar-close" id="sidebar-close">
+                        <i class="fas fa-times"></i>
+                    </button>
+                    <h3 id="sidebar-course-title-mobile" style="margin-bottom: 20px; color: var(--primary);">Course Content</h3>
+                    <div id="lessons-sidebar-mobile">
+                        <!-- Mobile lessons will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="learning-container">
+                    <!-- Course Sidebar -->
+                    <div class="course-sidebar" id="desktop-sidebar">
+                        <h3 id="sidebar-course-title" style="margin-bottom: 20px; color: var(--primary);">Course Content</h3>
+                        <div id="lessons-sidebar">
+                            <!-- Lessons will be populated here -->
+                        </div>
+                    </div>
+                    
+                    <!-- Main Content Area -->
+                    <div class="course-main">
+                        <div style="display: none; justify-content: space-between; align-items: center; margin-bottom: 30px;" class="desktop-nav-controls">
+                            <button class="btn btn-outline" id="back-to-dashboard">
+                                <i class="fas fa-arrow-left"></i>
+                                Back to Dashboard
+                            </button>
+                            <div style="display: flex; gap: 10px;">
+                                <div class="progress-container" style="background: var(--light); padding: 10px 15px; border-radius: 20px;">
+                                    <span style="font-weight: 600;">Progress: </span>
+                                    <span id="course-progress-text">0%</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <h1 id="course-view-title" style="margin-bottom: 10px; color: var(--dark);">Course Title</h1>
+                        <p id="course-view-subtitle" style="color: var(--gray); margin-bottom: 30px; font-size: 1.1rem;">Course Description</p>
+                        
+                        <!-- Current Lesson Content -->
+                        <div id="current-lesson">
+                            <div class="loading-container">
+                                <div class="spinner"></div>
+                                <p>Loading lesson content...</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Main App -->
-    <div class="app-container" id="appContainer">
-        <!-- Sidebar/Drawer Menu -->
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h2><i class="fas fa-graduation-cap"></i> Web Dev Course</h2>
-                <button class="close-sidebar" id="closeSidebar">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="course-progress">
-                <div class="progress-text">
-                    <span>Course Progress</span>
-                    <span id="progressPercent">0%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" id="progressFill"></div>
-                </div>
-            </div>
-            
-            <div class="course-modules" id="courseModules">
-                <div class="loading-modules" style="text-align: center; padding: 20px; color: white;">
-                    <div class="loading"></div> Loading course content...
-                </div>
-            </div>
-        </div>
-        
-        <!-- Main Content -->
-        <div class="main-content">
-            <div class="top-nav">
-                <button class="menu-toggle" id="menuToggle">
-                    <i class="fas fa-bars"></i>
-                </button>
-                <div class="user-info">
-                    <span id="welcomeMessage">Welcome, Student!</span>
-                    <button class="refresh-btn" id="refreshBtn">
-                        <i class="fas fa-sync-alt"></i> Refresh Content
-                    </button>
-                    <div class="user-avatar" id="userAvatar">U</div>
-                    <button class="logout-btn" id="logoutBtn">
-                        <i class="fas fa-sign-out-alt"></i> Logout
-                    </button>
-                </div>
-            </div>
-            
-            <div class="video-container">
-                <div class="video-player">
-                    <div class="video-source" id="videoSource">Loading...</div>
-                    
-                    <!-- HTML5 Video Player -->
-                    <video id="videoPlayer" controls width="100%" height="400" style="display: none;">
-                        Your browser does not support the video tag.
-                    </video>
-                    
-                    <!-- YouTube Player -->
-                    <iframe id="youtubePlayer" width="100%" height="400" style="display: none;"
-                            src="" frameborder="0" 
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                            allowfullscreen>
-                    </iframe>
-                    
-                    <!-- Placeholder -->
-                    <div class="video-placeholder" id="videoPlaceholder">
-                        <i class="fas fa-play-circle"></i>
-                        <h3 id="currentLessonTitle">Select a lesson to start</h3>
-                        <p>Choose a lesson from the sidebar to begin learning</p>
-                    </div>
-                </div>
-                
-                <div class="video-info">
-                    <h1 class="video-title" id="videoTitle">Welcome to the Course</h1>
-                    <div class="video-meta">
-                        <span><i class="far fa-calendar"></i> Start your learning journey</span>
-                    </div>
-                    <div class="lesson-description" id="lessonDescription">
-                        <p>Select a lesson from the sidebar to begin watching video content and track your progress.</p>
-                    </div>
-                    
-                    <div class="navigation-buttons">
-                        <button class="nav-btn prev-btn" id="prevLessonBtn" disabled>
-                            <i class="fas fa-arrow-left"></i> Previous Lesson
-                        </button>
-                        <button class="nav-btn next-btn" id="nextLessonBtn" disabled>
-                            Next Lesson <i class="fas fa-arrow-right"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <!-- Floating Action Button (Removed since we have auto-refresh) -->
+
+    <!-- Notification System -->
+    <div class="notification" id="notification">
+        <i class="fas fa-check-circle" style="color: var(--success);"></i>
+        <span id="notification-text">Operation completed successfully</span>
     </div>
 
     <script>
-        // Configuration
-        const API_URL = 'https://script.google.com/macros/s/AKfycbx77-WWWNOlwD1rK_8Ip9CzNbZqBUQjprAazBRx2AJ-nIxVKuTCJqUWvdJ96OjD_t__/exec';
+        // *** YOUR DEPLOYED GOOGLE APPS SCRIPT URL ***
+        const scriptURL = 'https://script.google.com/macros/s/AKfycbwAedbTghrO10YxXeW8UP8RpHrQpLanWTjilDpWhimVMHymGSqeyFw8X_o1Jj39-Jjq/exec'; // Replace with your actual URL
+        
+        // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const appContainer = document.getElementById('app-container');
+        
+        // View elements
+        const dashboardView = document.getElementById('dashboard-view');
+        const courseView = document.getElementById('course-view');
+        
+        // Login elements
+        const loginCard = document.getElementById('login-card');
+        const loginForm = document.getElementById('login-form');
+        const loginResponse = document.getElementById('login-response');
+        
+        // Signup elements
+        const signupCard = document.getElementById('signup-card');
+        const signupForm = document.getElementById('signup-form');
+        const signupResponse = document.getElementById('signup-response');
+        
+        // App elements
+        const userAvatar = document.getElementById('user-avatar');
+        const userName = document.getElementById('user-name');
+        const logoutButton = document.getElementById('logout-button');
+        const courseGrid = document.getElementById('course-grid');
+        const notification = document.getElementById('notification');
+        const notificationText = document.getElementById('notification-text');
+        
+        // New dashboard elements
+        const statsToggleBtn = document.getElementById('stats-toggle-btn');
+        const compactProgressSection = document.getElementById('compact-progress-section');
+        const refreshStatus = document.getElementById('refresh-status');
+        const lastUpdated = document.getElementById('last-updated');
+        const miniStats = document.getElementById('mini-stats');
+        const miniTotalCourses = document.getElementById('mini-total-courses');
+        const miniCompletedLessons = document.getElementById('mini-completed-lessons');
+        const miniCompletionRate = document.getElementById('mini-completion-rate');
+        const userStatsBadge = document.getElementById('user-stats-badge');
+        const userCoursesCount = document.getElementById('user-courses-count');
+        const userProgressPercent = document.getElementById('user-progress-percent');
+        const manualRefreshBtn = document.getElementById('manual-refresh-btn');
+        
+        // Course view elements
+        const backToDashboard = document.getElementById('back-to-dashboard');
+        const backToDashboardMobile = document.getElementById('back-to-dashboard-mobile');
+        const courseViewTitle = document.getElementById('course-view-title');
+        const courseViewSubtitle = document.getElementById('course-view-subtitle');
+        const courseProgressText = document.getElementById('course-progress-text');
+        const sidebarCourseTitle = document.getElementById('sidebar-course-title');
+        const sidebarCourseTitleMobile = document.getElementById('sidebar-course-title-mobile');
+        const lessonsSidebar = document.getElementById('lessons-sidebar');
+        const lessonsSidebarMobile = document.getElementById('lessons-sidebar-mobile');
+        const currentLesson = document.getElementById('current-lesson');
+        
+        // Mobile navigation elements
+        const mobileSidebarToggle = document.getElementById('mobile-sidebar-toggle');
+        const sidebarOverlay = document.getElementById('sidebar-overlay');
+        const sidebarMobile = document.getElementById('sidebar-mobile');
+        const sidebarClose = document.getElementById('sidebar-close');
+        const desktopNavControls = document.querySelector('.desktop-nav-controls');
 
-        // Application Controller
-        class CourseApp {
-            constructor() {
-                this.currentUser = null;
-                this.courseContent = null;
-                this.userProgress = null;
-                this.currentLessonId = null;
-                this.allLessons = [];
-                this.youtubeAPIReady = false;
-                
-                this.initEventListeners();
-                this.checkExistingSession();
-                this.loadYouTubeAPI();
+        // Current state
+        let currentUser = null;
+        let currentCourse = null;
+        let currentLessonContent = null;
+        let courses = [];
+        let courseContent = {};
+        let userProgress = {};
+        let autoRefreshInterval = null;
+        let lastUpdateTime = null;
+
+        // Auto-refresh configuration
+        const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
+        const MANUAL_REFRESH_COOLDOWN = 5000; // 5 seconds
+
+        // Initialize auto-refresh
+        function initAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
             }
-
-            initEventListeners() {
-                // Auth events
-                document.getElementById('loginBtn').addEventListener('click', () => this.handleLogin());
-                document.getElementById('registerBtn').addEventListener('click', () => this.handleRegister());
-                document.getElementById('showRegister').addEventListener('click', () => this.showRegisterForm());
-                document.getElementById('showLogin').addEventListener('click', () => this.showLoginForm());
-                document.getElementById('logoutBtn').addEventListener('click', () => this.handleLogout());
-                document.getElementById('refreshBtn').addEventListener('click', () => this.refreshContent());
-
-                // Demo accounts
-                document.querySelectorAll('.demo-account').forEach(account => {
-                    account.addEventListener('click', () => {
-                        const email = account.getAttribute('data-email');
-                        const password = account.getAttribute('data-password');
-                        document.getElementById('loginEmail').value = email;
-                        document.getElementById('loginPassword').value = password;
-                    });
-                });
-
-                // Course events
-                document.getElementById('menuToggle').addEventListener('click', () => this.toggleSidebar());
-                document.getElementById('closeSidebar').addEventListener('click', () => this.toggleSidebar());
-                document.getElementById('prevLessonBtn').addEventListener('click', () => this.navigateLesson(-1));
-                document.getElementById('nextLessonBtn').addEventListener('click', () => this.navigateLesson(1));
-            }
-
-            loadYouTubeAPI() {
-                // Load YouTube IFrame API
-                const tag = document.createElement('script');
-                tag.src = "https://www.youtube.com/iframe_api";
-                const firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-
-                window.onYouTubeIframeAPIReady = () => {
-                    this.youtubeAPIReady = true;
-                    console.log('YouTube API Ready');
-                };
-            }
-
-            // Improved API Call with multiple fallbacks
-            async callAPI(action, params = {}) {
-                const methods = [
-                    () => this.callAPIWithCorsProxy(action, params),
-                    () => this.callAPIDirect(action, params),
-                    () => this.callAPIWithJsonp(action, params)
-                ];
-
-                for (const method of methods) {
-                    try {
-                        const result = await method();
-                        if (result && !result.error) {
-                            return result;
-                        }
-                    } catch (error) {
-                        console.warn(`API method failed: ${method.name}`, error);
-                        continue;
-                    }
+            
+            autoRefreshInterval = setInterval(() => {
+                if (currentUser && dashboardView.style.display !== 'none') {
+                    loadCourses();
+                    loadUserProgress();
+                    updateLastUpdatedTime();
                 }
+            }, AUTO_REFRESH_INTERVAL);
+        }
 
-                // All methods failed, use mock data
-                console.log('All API methods failed, using mock data');
-                return this.getMockData(action, params);
-            }
-
-            async callAPIWithCorsProxy(action, params = {}) {
-                const proxyUrl = 'https://api.allorigins.win/raw?url=';
-                const targetUrl = encodeURIComponent(API_URL);
-                
-                const formData = new URLSearchParams();
-                formData.append('action', action);
-                Object.keys(params).forEach(key => {
-                    formData.append(key, params[key]);
-                });
-
-                const response = await fetch(proxyUrl + targetUrl, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('CORS proxy failed');
-                return await response.json();
-            }
-
-            async callAPIDirect(action, params = {}) {
-                const formData = new URLSearchParams();
-                formData.append('action', action);
-                Object.keys(params).forEach(key => {
-                    formData.append(key, params[key]);
-                });
-
-                const response = await fetch(API_URL, {
-                    method: 'POST',
-                    body: formData,
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                    'Accept': 'application/json'
-                    },
-                });
-                
-                const text = await response.text();
-                try {
-                    return JSON.parse(text);
-                } catch (e) {
-                    // Try to extract JSON from response
-                    const jsonMatch = text.match(/\{[\s\S]*\}/);
-                    if (jsonMatch) return JSON.parse(jsonMatch[0]);
-                    throw new Error('Invalid JSON response');
-                }
-            }
-
-            async callAPIWithJsonp(action, params = {}) {
-                return new Promise((resolve, reject) => {
-                    const callbackName = 'jsonp_callback_' + Date.now();
-                    const script = document.createElement('script');
-                    
-                    const urlParams = new URLSearchParams({
-                        action,
-                        ...params,
-                        callback: callbackName
-                    });
-                    
-                    script.src = `${API_URL}?${urlParams}`;
-                    
-                    window[callbackName] = (data) => {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        resolve(data);
-                    };
-                    
-                    script.onerror = () => {
-                        delete window[callbackName];
-                        document.body.removeChild(script);
-                        reject(new Error('JSONP failed'));
-                    };
-                    
-                    document.body.appendChild(script);
-                });
-            }
-
-            getMockData(action, params) {
-                console.log('Using mock data for:', action);
-                // Your actual lesson data from Google Sheets
-                const mockData = {
-                    getCourseContent: {
-                        modules: [
-                            {
-                                id: 1,
-                                title: "Module 1: HTML Fundamentals",
-                                order: 1,
-                                lessons: [
-                                    { 
-                                        id: 1, 
-                                        title: "Introduction to HTML", 
-                                        duration: "12:45", 
-                                        description: "Learn HTML basics and structure", 
-                                        video_url: "https://www.youtube.com/embed/gAXbB_4BavE",
-                                        order: 1 
-                                    },
-                                    { 
-                                        id: 2, 
-                                        title: "HTML Document Structure", 
-                                        duration: "18:30", 
-                                        description: "Understand HTML document anatomy", 
-                                        video_url: "https://www.youtube.com/embed/i94zoNYSFik",
-                                        order: 2 
-                                    },
-                                    { 
-                                        id: 3, 
-                                        title: "HTML Forms and Inputs", 
-                                        duration: "22:15", 
-                                        description: "Create interactive HTML forms", 
-                                        video_url: "https://www.youtube.com/embed/2O8pkybH6po",
-                                        order: 3 
-                                    }
-                                ]
-                            }
-                        ]
-                    },
-                    login: { 
-                        success: true, 
-                        user: { 
-                            id: params.email === 'student@example.com' ? 1 : 2, 
-                            name: params.email === 'student@example.com' ? 'Student User' : 'John Doe', 
-                            email: params.email 
-                        } 
-                    },
-                    register: { 
-                        success: true, 
-                        user: { 
-                            id: Date.now(), 
-                            name: params.name, 
-                            email: params.email 
-                        } 
-                    },
-                    getUserProgress: {
-                        progress: {
-                            completedLessons: params.user_id == 1 ? [1, 2] : [1],
-                            currentLesson: 1,
-                            lastUpdated: new Date().toISOString()
-                        }
-                    },
-                    updateProgress: { success: true }
-                };
-
-                return mockData[action] || { error: 'Action not found in mock data' };
-            }
-
-            showMessage(elementId, message, type) {
-                const messageEl = document.getElementById(elementId);
-                messageEl.textContent = message;
-                messageEl.className = `message ${type}`;
-                messageEl.style.display = 'block';
-                
-                setTimeout(() => {
-                    messageEl.style.display = 'none';
-                }, 5000);
-            }
-
-            showLoading(button, show) {
-                const btn = button.querySelector('.btn-text');
-                if (show) {
-                    button.disabled = true;
-                    btn.textContent = 'Loading...';
-                    if (!button.querySelector('.loading')) {
-                        const loading = document.createElement('span');
-                        loading.className = 'loading';
-                        button.insertBefore(loading, btn);
-                    }
-                } else {
-                    button.disabled = false;
-                    btn.textContent = button.id === 'loginBtn' ? 'Login to Course' : 'Create Account';
-                    const loading = button.querySelector('.loading');
-                    if (loading) loading.remove();
-                }
-            }
-
-            showLoginForm() {
-                document.getElementById('loginForm').style.display = 'block';
-                document.getElementById('registerForm').style.display = 'none';
-            }
-
-            showRegisterForm() {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('registerForm').style.display = 'block';
-            }
-
-            async handleLogin() {
-                const email = document.getElementById('loginEmail').value;
-                const password = document.getElementById('loginPassword').value;
-                const loginBtn = document.getElementById('loginBtn');
-
-                if (!email || !password) {
-                    this.showMessage('loginMessage', 'Please fill in all fields', 'error');
-                    return;
-                }
-
-                this.showLoading(loginBtn, true);
-
-                try {
-                    const result = await this.callAPI('login', { email, password });
-                    
-                    if (result.success) {
-                        this.currentUser = result.user;
-                        this.startSession();
-                        await this.showApp();
-                        this.showMessage('loginMessage', 'Login successful!', 'success');
-                    } else {
-                        this.showMessage('loginMessage', result.error || 'Login failed', 'error');
-                    }
-                } catch (error) {
-                    console.error('Login error:', error);
-                    this.showMessage('loginMessage', 'Login failed. Please try again.', 'error');
-                } finally {
-                    this.showLoading(loginBtn, false);
-                }
-            }
-
-            async handleRegister() {
-                const name = document.getElementById('registerName').value;
-                const email = document.getElementById('registerEmail').value;
-                const password = document.getElementById('registerPassword').value;
-                const confirmPassword = document.getElementById('registerConfirmPassword').value;
-                const registerBtn = document.getElementById('registerBtn');
-
-                if (!name || !email || !password || !confirmPassword) {
-                    this.showMessage('registerMessage', 'Please fill in all fields', 'error');
-                    return;
-                }
-
-                if (password !== confirmPassword) {
-                    this.showMessage('registerMessage', 'Passwords do not match', 'error');
-                    return;
-                }
-
-                this.showLoading(registerBtn, true);
-
-                try {
-                    const result = await this.callAPI('register', { name, email, password });
-                    
-                    if (result.success) {
-                        this.currentUser = result.user;
-                        this.startSession();
-                        await this.showApp();
-                        this.showMessage('registerMessage', 'Account created successfully!', 'success');
-                    } else {
-                        this.showMessage('registerMessage', result.error || 'Registration failed', 'error');
-                    }
-                } catch (error) {
-                    console.error('Registration error:', error);
-                    this.showMessage('registerMessage', 'Registration failed. Please try again.', 'error');
-                } finally {
-                    this.showLoading(registerBtn, false);
-                }
-            }
-
-            startSession() {
-                localStorage.setItem('currentUser', JSON.stringify(this.currentUser));
-            }
-
-            checkExistingSession() {
-                const savedUser = localStorage.getItem('currentUser');
-                if (savedUser) {
-                    this.currentUser = JSON.parse(savedUser);
-                    this.showApp();
-                }
-            }
-
-            handleLogout() {
-                this.currentUser = null;
-                this.courseContent = null;
-                this.userProgress = null;
-                localStorage.removeItem('currentUser');
-                this.showAuth();
-            }
-
-            async refreshContent() {
-                if (this.currentUser) {
-                    await this.loadCourseContent();
-                    await this.loadUserProgress();
-                    this.showMessage('welcomeMessage', 'Content refreshed successfully!', 'success');
-                }
-            }
-
-            showAuth() {
-                document.getElementById('authContainer').style.display = 'flex';
-                document.getElementById('appContainer').style.display = 'none';
-                // Clear forms
-                document.getElementById('loginEmail').value = '';
-                document.getElementById('loginPassword').value = '';
-                document.getElementById('registerName').value = '';
-                document.getElementById('registerEmail').value = '';
-                document.getElementById('registerPassword').value = '';
-                document.getElementById('registerConfirmPassword').value = '';
-            }
-
-            async showApp() {
-                document.getElementById('authContainer').style.display = 'none';
-                document.getElementById('appContainer').style.display = 'block';
-                
-                this.updateUserInterface();
-                await this.loadCourseContent();
-                await this.loadUserProgress();
-                
-                // Load current lesson or first lesson
-                if (this.userProgress && this.userProgress.currentLesson) {
-                    this.loadLesson(this.userProgress.currentLesson);
-                } else if (this.allLessons.length > 0) {
-                    this.loadLesson(this.allLessons[0].id);
-                }
-            }
-
-            updateUserInterface() {
-                document.getElementById('welcomeMessage').textContent = `Welcome, ${this.currentUser.name}!`;
-                document.getElementById('userAvatar').textContent = this.currentUser.name.charAt(0).toUpperCase();
-            }
-
-            async loadCourseContent() {
-                try {
-                    const modulesContainer = document.getElementById('courseModules');
-                    modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;"><div class="loading"></div> Loading course content...</div>';
-                    
-                    const result = await this.callAPI('getCourseContent');
-                    
-                    if (result && result.modules) {
-                        this.courseContent = result.modules;
-                        this.allLessons = this.courseContent.flatMap(module => module.lessons);
-                        this.renderCourseContent();
-                        console.log('Course content loaded successfully:', this.courseContent);
-                    } else {
-                        throw new Error('Invalid course content response');
-                    }
-                } catch (error) {
-                    console.error('Failed to load course content:', error);
-                    const modulesContainer = document.getElementById('courseModules');
-                    modulesContainer.innerHTML = '<div style="text-align: center; padding: 20px; color: white;">Failed to load course content. Using demo data.</div>';
-                    
-                    // Load mock data as fallback
-                    const mockResult = this.getMockData('getCourseContent');
-                    this.courseContent = mockResult.modules;
-                    this.allLessons = this.courseContent.flatMap(module => module.lessons);
-                    this.renderCourseContent();
-                }
-            }
-
-            async loadUserProgress() {
-                try {
-                    const result = await this.callAPI('getUserProgress', { user_id: this.currentUser.id });
-                    if (result && result.progress) {
-                        this.userProgress = result.progress;
-                        this.updateProgressDisplay();
-                        console.log('User progress loaded:', this.userProgress);
-                    } else {
-                        throw new Error('Invalid progress response');
-                    }
-                } catch (error) {
-                    console.error('Failed to load user progress:', error);
-                    // Default progress
-                    this.userProgress = {
-                        completedLessons: [],
-                        currentLesson: this.allLessons.length > 0 ? this.allLessons[0].id : null
-                    };
-                }
-            }
-
-            renderCourseContent() {
-                const modulesContainer = document.getElementById('courseModules');
-                modulesContainer.innerHTML = '';
-
-                this.courseContent.forEach(module => {
-                    const moduleEl = document.createElement('div');
-                    moduleEl.className = 'module';
-                    moduleEl.innerHTML = `
-                        <div class="module-header">
-                            <span>${module.title}</span>
-                            <i class="fas fa-chevron-down"></i>
-                        </div>
-                        <div class="module-content">
-                            ${module.lessons.map(lesson => `
-                                <div class="lesson" data-lesson-id="${lesson.id}">
-                                    <i class="fas fa-play-circle"></i>
-                                    <span>${lesson.title}</span>
-                                    <span class="lesson-duration">${lesson.duration}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                    `;
-                    modulesContainer.appendChild(moduleEl);
-
-                    // Add event listeners
-                    const moduleHeader = moduleEl.querySelector('.module-header');
-                    moduleHeader.addEventListener('click', () => {
-                        const content = moduleHeader.nextElementSibling;
-                        const isOpen = content.classList.contains('open');
-                        
-                        document.querySelectorAll('.module-content').forEach(item => {
-                            item.classList.remove('open');
-                        });
-                        
-                        document.querySelectorAll('.module-header').forEach(item => {
-                            item.classList.remove('active');
-                        });
-                        
-                        if (!isOpen) {
-                            content.classList.add('open');
-                            moduleHeader.classList.add('active');
-                        }
-                    });
-
-                    // Lesson click events
-                    moduleEl.querySelectorAll('.lesson').forEach(lessonEl => {
-                        lessonEl.addEventListener('click', () => {
-                            const lessonId = parseInt(lessonEl.getAttribute('data-lesson-id'));
-                            this.loadLesson(lessonId);
-                        });
-                    });
-                });
-
-                // Open first module by default
-                const firstModule = modulesContainer.querySelector('.module');
-                if (firstModule) {
-                    const firstHeader = firstModule.querySelector('.module-header');
-                    firstHeader.click();
-                }
-
-                // Update lesson completion states
-                this.updateLessonStates();
-            }
-
-            async loadLesson(lessonId) {
-                const lesson = this.allLessons.find(l => l.id === lessonId);
-                if (!lesson) {
-                    console.error('Lesson not found:', lessonId);
-                    return;
-                }
-
-                this.currentLessonId = lessonId;
-                
-                // Update UI
-                document.getElementById('currentLessonTitle').textContent = lesson.title;
-                document.getElementById('videoTitle').textContent = lesson.title;
-                document.getElementById('lessonDescription').innerHTML = `
-                    <p>${lesson.description}</p>
-                    <p><strong>Duration:</strong> ${lesson.duration}</p>
-                `;
-
-                // Load video based on URL type
-                await this.loadVideo(lesson);
-
-                // Update lesson states in sidebar
-                this.updateLessonStates();
-
-                // Update navigation buttons
-                this.updateNavigationButtons();
-
-                // Update user progress in backend
-                if (this.userProgress.currentLesson !== lessonId) {
-                    this.userProgress.currentLesson = lessonId;
-                    await this.updateUserProgress();
-                }
-            }
-
-            async loadVideo(lesson) {
-                const videoPlayer = document.getElementById('videoPlayer');
-                const youtubePlayer = document.getElementById('youtubePlayer');
-                const placeholder = document.getElementById('videoPlaceholder');
-                const videoSource = document.getElementById('videoSource');
-
-                // Hide all players first
-                videoPlayer.style.display = 'none';
-                youtubePlayer.style.display = 'none';
-                placeholder.style.display = 'none';
-
-                if (!lesson.video_url) {
-                    placeholder.style.display = 'flex';
-                    videoSource.textContent = 'No video available';
-                    return;
-                }
-
-                // Check if it's a YouTube URL
-                if (lesson.video_url.includes('youtube.com/embed') || lesson.video_url.includes('youtu.be')) {
-                    videoSource.textContent = 'YouTube';
-                    
-                    let videoId;
-                    if (lesson.video_url.includes('youtube.com/embed/')) {
-                        videoId = lesson.video_url.split('youtube.com/embed/')[1];
-                    } else if (lesson.video_url.includes('youtu.be/')) {
-                        videoId = lesson.video_url.split('youtu.be/')[1];
-                    } else {
-                        // Extract from watch URL
-                        const urlParams = new URLSearchParams(new URL(lesson.video_url).search);
-                        videoId = urlParams.get('v');
-                    }
-
-                    if (videoId) {
-                        const embedUrl = `https://www.youtube.com/embed/${videoId}?rel=0&enablejsapi=1`;
-                        youtubePlayer.src = embedUrl;
-                        youtubePlayer.style.display = 'block';
-                        
-                        // Add YouTube end event listener
-                        youtubePlayer.onload = () => {
-                            // This would require YouTube API for proper end detection
-                            console.log('YouTube video loaded');
-                        };
-                    } else {
-                        placeholder.style.display = 'flex';
-                    }
-                } 
-                // Check if it's an MP4 or other direct video
-                else if (lesson.video_url.includes('.mp4') || lesson.video_url.includes('.webm') || lesson.video_url.includes('.ogg')) {
-                    videoSource.textContent = 'Video';
-                    videoPlayer.src = lesson.video_url;
-                    videoPlayer.style.display = 'block';
-                    
-                    // Add ended event listener for completion tracking
-                    videoPlayer.onended = () => {
-                        this.markLessonCompleted();
-                    };
-                } 
-                // Fallback to iframe for other URLs
-                else {
-                    videoSource.textContent = 'External Content';
-                    youtubePlayer.src = lesson.video_url;
-                    youtubePlayer.style.display = 'block';
-                }
-            }
-
-            updateLessonStates() {
-                document.querySelectorAll('.lesson').forEach(lessonEl => {
-                    const lessonId = parseInt(lessonEl.getAttribute('data-lesson-id'));
-                    
-                    // Remove all states
-                    lessonEl.classList.remove('active', 'completed');
-                    
-                    // Set active state
-                    if (lessonId === this.currentLessonId) {
-                        lessonEl.classList.add('active');
-                    }
-                    
-                    // Set completed state
-                    if (this.userProgress.completedLessons.includes(lessonId)) {
-                        lessonEl.classList.add('completed');
-                    }
-                });
-            }
-
-            async markLessonCompleted() {
-                if (!this.userProgress.completedLessons.includes(this.currentLessonId)) {
-                    this.userProgress.completedLessons.push(this.currentLessonId);
-                    
-                    // Update UI immediately
-                    this.updateLessonStates();
-                    this.updateProgressDisplay();
-                    
-                    // Save to backend
-                    await this.updateUserProgress();
-                    
-                    console.log('Lesson marked as completed:', this.currentLessonId);
-                    
-                    // Show completion message
-                    this.showMessage('welcomeMessage', 'Lesson completed! Progress saved.', 'success');
-                }
-            }
-
-            async updateUserProgress() {
-                try {
-                    const result = await this.callAPI('updateProgress', {
-                        user_id: this.currentUser.id,
-                        completed_lessons: this.userProgress.completedLessons.join(','),
-                        current_lesson: this.currentLessonId
-                    });
-                    
-                    if (result && result.success) {
-                        console.log('Progress updated successfully in backend');
-                    } else {
-                        console.error('Progress update failed in backend');
-                        // Save locally as backup
-                        localStorage.setItem(`userProgress_${this.currentUser.id}`, JSON.stringify(this.userProgress));
-                    }
-                } catch (error) {
-                    console.error('Failed to update progress in backend:', error);
-                    // Save locally as backup
-                    localStorage.setItem(`userProgress_${this.currentUser.id}`, JSON.stringify(this.userProgress));
-                }
-            }
-
-            updateProgressDisplay() {
-                const totalLessons = this.allLessons.length;
-                const completedLessons = this.userProgress.completedLessons.length;
-                const progressPercent = totalLessons > 0 ? (completedLessons / totalLessons) * 100 : 0;
-
-                document.getElementById('progressPercent').textContent = `${Math.round(progressPercent)}%`;
-                document.getElementById('progressFill').style.width = `${progressPercent}%`;
-            }
-
-            updateNavigationButtons() {
-                const currentIndex = this.allLessons.findIndex(lesson => lesson.id === this.currentLessonId);
-                const prevBtn = document.getElementById('prevLessonBtn');
-                const nextBtn = document.getElementById('nextLessonBtn');
-
-                prevBtn.disabled = currentIndex <= 0;
-                nextBtn.disabled = currentIndex >= this.allLessons.length - 1;
-            }
-
-            navigateLesson(direction) {
-                const currentIndex = this.allLessons.findIndex(lesson => lesson.id === this.currentLessonId);
-                const newIndex = currentIndex + direction;
-
-                if (newIndex >= 0 && newIndex < this.allLessons.length) {
-                    this.loadLesson(this.allLessons[newIndex].id);
-                }
-            }
-
-            toggleSidebar() {
-                document.getElementById('sidebar').classList.toggle('open');
+        // Update last updated time
+        function updateLastUpdatedTime() {
+            lastUpdateTime = new Date();
+            const now = new Date();
+            const diffMs = now - lastUpdateTime;
+            const diffSec = Math.floor(diffMs / 1000);
+            const diffMin = Math.floor(diffSec / 60);
+            
+            if (diffMin === 0) {
+                lastUpdated.textContent = 'Just now';
+            } else if (diffMin === 1) {
+                lastUpdated.textContent = '1 min ago';
+            } else {
+                lastUpdated.textContent = `${diffMin} mins ago`;
             }
         }
 
-        // Initialize the application
-        document.addEventListener('DOMContentLoaded', () => {
-            const app = new CourseApp();
-            window.courseApp = app; // Make available globally for debugging
+        // Toggle stats visibility
+        function toggleStats() {
+            compactProgressSection.classList.toggle('show');
+            const isVisible = compactProgressSection.classList.contains('show');
+            
+            if (isVisible) {
+                statsToggleBtn.innerHTML = '<i class="fas fa-chart-bar"></i><span class="stats-toggle-text">Hide Stats</span>';
+                statsToggleBtn.style.background = 'var(--secondary)';
+            } else {
+                statsToggleBtn.innerHTML = '<i class="fas fa-chart-bar"></i><span class="stats-toggle-text">Show Stats</span>';
+                statsToggleBtn.style.background = 'var(--primary)';
+            }
+        }
+
+        // Update mini stats in header
+        function updateMiniStats() {
+            const totalCourses = courses.length;
+            let totalCompleted = 0;
+            let totalLessons = 0;
+            
+            courses.forEach(course => {
+                const progress = userProgress[course.courseid] || [];
+                totalCompleted += progress.length;
+                
+                if (courseContent[course.courseid]) {
+                    totalLessons += courseContent[course.courseid].length;
+                }
+            });
+            
+            const completionRate = totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0;
+            
+            // Update mini stats
+            miniTotalCourses.textContent = totalCourses;
+            miniCompletedLessons.textContent = totalCompleted;
+            miniCompletionRate.textContent = completionRate + '%';
+            
+            // Update user badge
+            userCoursesCount.textContent = totalCourses;
+            userProgressPercent.textContent = completionRate + '%';
+        }
+
+        // Show notification
+        function showNotification(message, type = 'success') {
+            notificationText.textContent = message;
+            notification.className = `notification ${type}`;
+            notification.classList.add('show');
+            
+            setTimeout(() => {
+                notification.classList.remove('show');
+            }, 3000);
+        }
+
+        // Mobile sidebar functions
+        function openMobileSidebar() {
+            sidebarMobile.classList.add('active');
+            sidebarOverlay.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeMobileSidebar() {
+            sidebarMobile.classList.remove('active');
+            sidebarOverlay.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Initialize mobile sidebar events
+        function initMobileSidebar() {
+            mobileSidebarToggle.addEventListener('click', openMobileSidebar);
+            sidebarClose.addEventListener('click', closeMobileSidebar);
+            sidebarOverlay.addEventListener('click', closeMobileSidebar);
+            
+            // Close sidebar when a lesson is selected on mobile
+            lessonsSidebarMobile.addEventListener('click', (e) => {
+                if (e.target.closest('.lesson-item')) {
+                    closeMobileSidebar();
+                }
+            });
+        }
+
+        // Show login form
+        document.getElementById('show-login').addEventListener('click', function() {
+            loginCard.style.display = 'block';
+            signupCard.style.display = 'none';
+            loginResponse.style.display = 'none';
+            signupResponse.style.display = 'none';
+        });
+
+        // Show signup form
+        document.getElementById('show-signup').addEventListener('click', function() {
+            loginCard.style.display = 'none';
+            signupCard.style.display = 'block';
+            loginResponse.style.display = 'none';
+            signupResponse.style.display = 'none';
+        });
+
+        // Login form handler
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const loginButton = loginForm.querySelector('button');
+            loginButton.disabled = true;
+            loginButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Signing In...';
+            loginResponse.style.display = 'none';
+            loginResponse.classList.remove('success', 'error');
+
+            const formData = new FormData(loginForm);
+            formData.append('action', 'login');
+            
+            fetch(scriptURL, { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.result === 'success') {
+                    loginResponse.textContent = '✅ Login successful!';
+                    loginResponse.classList.add('success');
+                    
+                    // Store user data
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    
+                    // Switch to app view after a short delay
+                    setTimeout(() => {
+                        showAppView(data.user);
+                    }, 1000);
+                } else {
+                    throw new Error(data.error || 'Login failed. Please check your credentials.');
+                }
+            })
+            .catch(error => {
+                console.error('Login Error:', error);
+                loginResponse.textContent = `❌ Error: ${error.message}`;
+                loginResponse.classList.add('error');
+            })
+            .finally(() => {
+                loginButton.disabled = false;
+                loginButton.innerHTML = '<i class="fas fa-sign-in-alt"></i> Sign In';
+                loginResponse.style.display = 'block';
+            });
+        });
+
+        // Signup form handler
+        signupForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                signupResponse.textContent = '❌ Passwords do not match.';
+                signupResponse.classList.add('error');
+                signupResponse.style.display = 'block';
+                return;
+            }
+            
+            const signupButton = signupForm.querySelector('button');
+            signupButton.disabled = true;
+            signupButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+            signupResponse.style.display = 'none';
+            signupResponse.classList.remove('success', 'error');
+
+            const formData = new FormData(signupForm);
+            formData.append('action', 'signup');
+            
+            fetch(scriptURL, { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.result === 'success') {
+                    signupResponse.textContent = '✅ Account created successfully! You can now sign in.';
+                    signupResponse.classList.add('success');
+                    
+                    // Clear form
+                    signupForm.reset();
+                    
+                    // Switch to login form after a short delay
+                    setTimeout(() => {
+                        loginCard.style.display = 'block';
+                        signupCard.style.display = 'none';
+                    }, 2000);
+                } else {
+                    throw new Error(data.error || 'Account creation failed. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Signup Error:', error);
+                signupResponse.textContent = `❌ Error: ${error.message}`;
+                signupResponse.classList.add('error');
+            })
+            .finally(() => {
+                signupButton.disabled = false;
+                signupButton.innerHTML = '<i class="fas fa-user-plus"></i> Create Account';
+                signupResponse.style.display = 'block';
+            });
+        });
+
+        // Logout handler
+        logoutButton.addEventListener('click', function() {
+            localStorage.removeItem('user');
+            localStorage.removeItem('userProgress');
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            showAuthView();
+            showNotification('You have been logged out successfully');
+        });
+
+        // Manual refresh handler
+        manualRefreshBtn.addEventListener('click', function() {
+            if (currentUser) {
+                loadCourses();
+                loadUserProgress();
+                updateLastUpdatedTime();
+                showNotification('Data refreshed successfully');
+                
+                // Disable button temporarily to prevent spam
+                manualRefreshBtn.disabled = true;
+                manualRefreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
+                
+                setTimeout(() => {
+                    manualRefreshBtn.disabled = false;
+                    manualRefreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Courses';
+                }, MANUAL_REFRESH_COOLDOWN);
+            }
+        });
+
+        // Stats toggle handler
+        statsToggleBtn.addEventListener('click', toggleStats);
+
+        // Navigation handlers
+        backToDashboard.addEventListener('click', showDashboardView);
+        backToDashboardMobile.addEventListener('click', showDashboardView);
+
+        // Show app view
+        function showAppView(user) {
+            currentUser = user;
+            
+            authContainer.style.display = 'none';
+            appContainer.style.display = 'block';
+            
+            // Update user info
+            userName.textContent = user.fullName;
+            userAvatar.textContent = user.fullName.charAt(0).toUpperCase();
+            
+            // Initialize mobile sidebar
+            initMobileSidebar();
+            
+            // Start auto-refresh
+            initAutoRefresh();
+            
+            // Load courses and progress
+            loadCourses();
+            loadUserProgress();
+            
+            // Show dashboard
+            showDashboardView();
+            
+            showNotification(`Welcome back, ${user.fullName}!`);
+        }
+
+        // Show auth view
+        function showAuthView() {
+            authContainer.style.display = 'flex';
+            appContainer.style.display = 'none';
+            
+            // Reset forms
+            loginForm.reset();
+            signupForm.reset();
+            loginResponse.style.display = 'none';
+            signupResponse.style.display = 'none';
+            
+            // Clear auto-refresh
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            currentUser = null;
+            courses = [];
+            userProgress = {};
+        }
+
+        // Load courses from backend
+        function loadCourses() {
+            const formData = new FormData();
+            formData.append('action', 'getCourses');
+            
+            fetch(scriptURL, { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok: ' + response.statusText);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.result === 'success') {
+                    courses = data.courses;
+                    renderCourses();
+                    updateMiniStats();
+                } else {
+                    console.error('Error loading courses:', data.error);
+                    courseGrid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading courses: ' + (data.error || 'Unknown error') + '</p></div>';
+                }
+            })
+            .catch(error => {
+                console.error('Error loading courses:', error);
+                courseGrid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading courses. Check console for details.</p></div>';
+            });
+        }
+
+        // Load user progress from backend
+        function loadUserProgress() {
+            if (!currentUser) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'getUserProgress');
+            formData.append('userId', currentUser.userId);
+            
+            fetch(scriptURL, { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    userProgress = {};
+                    data.progress.forEach(progress => {
+                        if (!userProgress[progress.courseid]) {
+                            userProgress[progress.courseid] = [];
+                        }
+                        userProgress[progress.courseid].push(progress.contentid);
+                    });
+                    renderCourses(); // Refresh courses with updated progress
+                    updateMiniStats();
+                    updateDashboardStats();
+                }
+            })
+            .catch(error => {
+                console.error('Error loading progress:', error);
+            });
+        }
+
+        // Load course content
+        function loadCourseContent(courseId) {
+            const formData = new FormData();
+            formData.append('action', 'getCourseContent');
+            formData.append('courseId', courseId);
+            
+            return fetch(scriptURL, { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    courseContent[courseId] = data.content;
+                    return data.content;
+                } else {
+                    throw new Error(data.error);
+                }
+            });
+        }
+
+        // Show dashboard view
+        function showDashboardView() {
+            dashboardView.style.display = 'block';
+            courseView.style.display = 'none';
+            closeMobileSidebar();
+            
+            // Restart auto-refresh when returning to dashboard
+            initAutoRefresh();
+        }
+
+        // Show course view
+        async function showCourseView(courseId) {
+            currentCourse = courses.find(c => c.courseid === courseId);
+            if (!currentCourse) return;
+            
+            dashboardView.style.display = 'none';
+            courseView.style.display = 'block';
+            
+            // Pause auto-refresh while in course view
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+            
+            // Show desktop nav controls on larger screens
+            if (window.innerWidth >= 1024) {
+                desktopNavControls.style.display = 'flex';
+            }
+            
+            // Show loading state
+            lessonsSidebar.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Loading course content...</p></div>';
+            lessonsSidebarMobile.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Loading course content...</p></div>';
+            currentLesson.innerHTML = '<div class="loading-container"><div class="spinner"></div><p>Loading lesson content...</p></div>';
+            
+            try {
+                await loadCourseContent(courseId);
+                renderCourseView();
+            } catch (error) {
+                console.error('Error loading course content:', error);
+                lessonsSidebar.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading course content</p></div>';
+                lessonsSidebarMobile.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading course content</p></div>';
+                currentLesson.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading course content</p></div>';
+            }
+        }
+
+        // Enhanced renderCourseView function
+        function renderCourseView() {
+            if (!currentCourse || !courseContent[currentCourse.courseid]) return;
+            
+            courseViewTitle.textContent = currentCourse.title;
+            courseViewSubtitle.textContent = currentCourse.description;
+            sidebarCourseTitle.textContent = currentCourse.title;
+            sidebarCourseTitleMobile.textContent = currentCourse.title;
+            
+            const courseProgress = userProgress[currentCourse.courseid] || [];
+            const totalLessons = courseContent[currentCourse.courseid].length;
+            const progressPercent = Math.round((courseProgress.length / totalLessons) * 100);
+            
+            courseProgressText.textContent = `${progressPercent}%`;
+            
+            // Render sidebar lessons
+            renderLessonsSidebar();
+            
+            // Load first lesson by default
+            if (courseContent[currentCourse.courseid].length > 0) {
+                showLessonView(courseContent[currentCourse.courseid][0].contentid);
+            }
+        }
+
+        // Render lessons in sidebar (both desktop and mobile)
+        function renderLessonsSidebar() {
+            if (!currentCourse || !courseContent[currentCourse.courseid]) return;
+            
+            const sidebar = document.getElementById('lessons-sidebar');
+            const mobileSidebar = document.getElementById('lessons-sidebar-mobile');
+            sidebar.innerHTML = '';
+            mobileSidebar.innerHTML = '';
+            
+            courseContent[currentCourse.courseid].forEach((content, index) => {
+                const isCompleted = userProgress[currentCourse.courseid] && 
+                    userProgress[currentCourse.courseid].includes(content.contentid);
+                const isActive = currentLessonContent && currentLessonContent.contentid === content.contentid;
+                
+                const lessonItemHTML = `
+                    <div class="lesson-item ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span class="lesson-type ${content.contenttype}">
+                                ${content.contenttype === 'video' ? '▶' : '📄'}
+                            </span>
+                            <div style="flex: 1;">
+                                <div style="font-weight: 600; font-size: 0.9rem;">${content.title}</div>
+                                <div style="font-size: 0.8rem; opacity: 0.7;">${content.duration || 0} min</div>
+                            </div>
+                            ${isCompleted ? '<i class="fas fa-check-circle" style="color: var(--success);"></i>' : ''}
+                        </div>
+                    </div>
+                `;
+                
+                // Add to desktop sidebar
+                const lessonItem = document.createElement('div');
+                lessonItem.innerHTML = lessonItemHTML;
+                lessonItem.addEventListener('click', () => showLessonView(content.contentid));
+                sidebar.appendChild(lessonItem);
+                
+                // Add to mobile sidebar
+                const mobileLessonItem = document.createElement('div');
+                mobileLessonItem.innerHTML = lessonItemHTML;
+                mobileLessonItem.addEventListener('click', () => showLessonView(content.contentid));
+                mobileSidebar.appendChild(mobileLessonItem);
+            });
+        }
+
+        // Enhanced showLessonView function with video support
+        function showLessonView(contentId) {
+            if (!currentCourse || !courseContent[currentCourse.courseid]) return;
+            
+            const content = courseContent[currentCourse.courseid].find(c => c.contentid === contentId);
+            if (!content) return;
+            
+            currentLessonContent = content;
+            
+            // Update sidebar active state
+            renderLessonsSidebar();
+            
+            // Render lesson content
+            const lessonContainer = document.getElementById('current-lesson');
+            
+            if (content.contenttype === 'video' && content.videourl) {
+                lessonContainer.innerHTML = `
+                    <div class="video-container">
+                        <iframe 
+                            class="video-player"
+                            src="${content.videourl}" 
+                            frameborder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                    <div style="margin-top: 30px;">
+                        <h2 style="margin-bottom: 15px; color: var(--dark);">${content.title}</h2>
+                        <div style="color: var(--gray); line-height: 1.6; margin-bottom: 20px;">
+                            ${content.content || 'No additional content provided.'}
+                        </div>
+                    </div>
+                `;
+            } else {
+                lessonContainer.innerHTML = `
+                    <div style="margin-top: 30px;">
+                        <h2 style="margin-bottom: 15px; color: var(--dark);">${content.title}</h2>
+                        <div style="color: var(--gray); line-height: 1.6; margin-bottom: 20px;">
+                            ${content.content || 'No content available for this lesson.'}
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Add completion button
+            const isCompleted = userProgress[currentCourse.courseid] && 
+                userProgress[currentCourse.courseid].includes(content.contentid);
+            
+            if (!isCompleted) {
+                const completeButton = document.createElement('button');
+                completeButton.className = 'btn btn-success';
+                completeButton.innerHTML = '<i class="fas fa-check-circle"></i> Mark as Complete';
+                completeButton.onclick = markLessonComplete;
+                lessonContainer.appendChild(completeButton);
+            } else {
+                const completedBadge = document.createElement('div');
+                completedBadge.className = 'btn btn-outline';
+                completedBadge.innerHTML = '<i class="fas fa-check-circle"></i> Lesson Completed';
+                completedBadge.style.cursor = 'default';
+                lessonContainer.appendChild(completedBadge);
+            }
+            
+            // Add resources section if available
+            if (content.resources) {
+                const resourcesSection = document.createElement('div');
+                resourcesSection.className = 'resources-section';
+                resourcesSection.innerHTML = `
+                    <h3 style="margin-bottom: 15px; color: var(--dark);">Lesson Resources</h3>
+                    <div class="resource-item">
+                        <i class="fas fa-file-pdf" style="color: var(--danger);"></i>
+                        <div>
+                            <div style="font-weight: 600;">${content.resources}</div>
+                            <div style="font-size: 0.8rem; color: var(--gray);">Downloadable resource</div>
+                        </div>
+                        <button class="btn btn-outline" style="margin-left: auto; padding: 5px 15px;">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>
+                `;
+                lessonContainer.appendChild(resourcesSection);
+            }
+        }
+
+        // Render courses on dashboard
+        function renderCourses() {
+            if (courses.length === 0) {
+                courseGrid.innerHTML = '<div class="empty-state"><i class="fas fa-book"></i><p>No courses available in the database</p></div>';
+                return;
+            }
+            
+            courseGrid.innerHTML = '';
+            
+            courses.forEach(course => {
+                const courseProgress = userProgress[course.courseid] || [];
+                const totalLessons = courseContent[course.courseid] ? courseContent[course.courseid].length : 0;
+                const progressPercent = totalLessons > 0 ? Math.round((courseProgress.length / totalLessons) * 100) : 0;
+                
+                const courseCard = document.createElement('div');
+                courseCard.className = 'course-card';
+                courseCard.innerHTML = `
+                    <img src="${course.thumbnail || 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400'}" alt="${course.title}" class="course-thumbnail">
+                    <div class="course-content">
+                        <div class="course-category">${course.category || 'General'}</div>
+                        <h3 class="course-title">${course.title}</h3>
+                        <p class="course-description">${course.description}</p>
+                        <div class="course-meta">
+                            <div class="course-info">
+                                <span><i class="fas fa-clock"></i> ${course.duration || 'N/A'}</span>
+                                <span><i class="fas fa-signal"></i> ${course.level || 'All Levels'}</span>
+                            </div>
+                            <div class="progress-container" style="flex: 1; margin: 0 15px;">
+                                <div class="progress-bar">
+                                    <div class="progress-fill" style="width: ${progressPercent}%"></div>
+                                </div>
+                            </div>
+                            <span style="font-weight: 600; color: var(--primary);">${progressPercent}%</span>
+                        </div>
+                    </div>
+                `;
+                
+                courseCard.addEventListener('click', () => showCourseView(course.courseid));
+                courseGrid.appendChild(courseCard);
+            });
+            
+            // Update dashboard stats
+            updateDashboardStats();
+            updateMiniStats();
+        }
+
+        function updateDashboardStats() {
+            document.getElementById('total-courses').textContent = courses.length;
+            
+            let totalCompleted = 0;
+            let totalLessons = 0;
+            let totalHours = 0;
+            
+            courses.forEach(course => {
+                const progress = userProgress[course.courseid] || [];
+                totalCompleted += progress.length;
+                
+                if (courseContent[course.courseid]) {
+                    totalLessons += courseContent[course.courseid].length;
+                    
+                    // Calculate total hours from completed lessons
+                    courseContent[course.courseid].forEach(lesson => {
+                        if (progress.includes(lesson.contentid)) {
+                            totalHours += lesson.duration || 0;
+                        }
+                    });
+                }
+            });
+            
+            document.getElementById('completed-lessons').textContent = totalCompleted;
+            document.getElementById('learning-hours').textContent = Math.round(totalHours / 60);
+            document.getElementById('completion-rate').textContent = totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) + '%' : '0%';
+        }
+
+        // Mark lesson as complete
+        function markLessonComplete() {
+            if (!currentLessonContent || !currentCourse || !currentUser) return;
+            
+            const formData = new FormData();
+            formData.append('action', 'updateProgress');
+            formData.append('userId', currentUser.userId);
+            formData.append('courseId', currentCourse.courseid);
+            formData.append('contentId', currentLessonContent.contentid);
+            formData.append('status', 'completed');
+            formData.append('timeSpent', currentLessonContent.duration || 0);
+            
+            fetch(scriptURL, { 
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.result === 'success') {
+                    // Update local progress
+                    if (!userProgress[currentCourse.courseid]) {
+                        userProgress[currentCourse.courseid] = [];
+                    }
+                    userProgress[currentCourse.courseid].push(currentLessonContent.contentid);
+                    
+                    // Update UI
+                    renderLessonsSidebar();
+                    renderCourseView();
+                    updateDashboardStats();
+                    updateMiniStats();
+                    
+                    // Show success message
+                    showNotification('Lesson marked as complete!');
+                }
+            })
+            .catch(error => {
+                console.error('Error updating progress:', error);
+                showNotification('Error updating progress. Please try again.', 'error');
+            });
+        }
+
+        // Handle window resize for responsive behavior
+        function handleResize() {
+            if (window.innerWidth >= 1024) {
+                // Desktop: Show desktop nav controls in course view
+                if (courseView.style.display !== 'none') {
+                    desktopNavControls.style.display = 'flex';
+                }
+                closeMobileSidebar();
+            } else {
+                // Mobile: Hide desktop nav controls
+                desktopNavControls.style.display = 'none';
+                
+                // Update text for mobile
+                document.querySelector('.stats-toggle-text').textContent = 'Stats';
+                document.querySelector('.logout-text').textContent = '';
+            }
+        }
+
+        // Check if user is already logged in
+        function checkAuthStatus() {
+            const user = localStorage.getItem('user');
+            
+            if (user) {
+                showAppView(JSON.parse(user));
+            } else {
+                showAuthView();
+            }
+        }
+
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            checkAuthStatus();
+            window.addEventListener('resize', handleResize);
+            
+            // Set initial state
+            handleResize();
+            updateLastUpdatedTime();
         });
     </script>
 </body>
