@@ -38,7 +38,6 @@
             color: var(--dark);
             line-height: 1.6;
             min-height: 100vh;
-            overflow-x: hidden;
         }
         
         .container {
@@ -48,6 +47,7 @@
             padding: 15px;
         }
 
+        /* Mobile-First Responsive Breakpoints */
         @media (min-width: 768px) {
             .container {
                 padding: 20px;
@@ -60,7 +60,7 @@
             }
         }
         
-        /* Auth Styles */
+        /* Auth Styles - Mobile Optimized */
         .auth-container {
             display: flex;
             flex-direction: column;
@@ -105,7 +105,7 @@
             box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
         }
         
-        /* Form Styles */
+        /* Form Styles - Mobile Optimized */
         .form-group {
             margin-bottom: 20px;
         }
@@ -129,7 +129,7 @@
             padding: 14px 16px;
             border: 1px solid #e1e5ee;
             border-radius: var(--border-radius);
-            font-size: 16px;
+            font-size: 16px; /* Prevents zoom on iOS */
             transition: var(--transition);
             background-color: #f8f9fa;
         }
@@ -141,7 +141,7 @@
             background-color: white;
         }
         
-        /* Professional Header */
+        /* Professional Header - Mobile Optimized */
         .professional-header {
             background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
             color: white;
@@ -200,129 +200,7 @@
             }
         }
         
-        /* Compact Dashboard Styles */
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            gap: 15px;
-        }
-
-        .dashboard-controls {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-        }
-
-        .stats-toggle-btn {
-            background: var(--primary);
-            color: white;
-            border: none;
-            padding: 10px 15px;
-            border-radius: var(--border-radius);
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-weight: 600;
-            transition: var(--transition);
-            min-height: 44px;
-        }
-
-        .stats-toggle-btn:hover {
-            background: var(--secondary);
-            transform: translateY(-2px);
-        }
-
-        .compact-progress-section {
-            background: var(--gradient);
-            color: white;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 25px;
-            display: none;
-            animation: slideDown 0.3s ease;
-        }
-
-        .compact-progress-section.show {
-            display: block;
-        }
-
-        @keyframes slideDown {
-            from {
-                opacity: 0;
-                transform: translateY(-10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        /* Auto-refresh indicator */
-        .refresh-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            color: var(--gray);
-            font-size: 0.85rem;
-        }
-
-        .refresh-indicator {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--success);
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        /* Mini stats for quick view */
-        .mini-stats {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .mini-stat-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 8px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: white;
-        }
-
-        .mini-stat-value {
-            font-weight: 700;
-            color: var(--warning);
-        }
-
-        /* Enhanced user info with quick stats */
-        .user-info-compact {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .user-stats-badge {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 4px 8px;
-            border-radius: 12px;
-            font-size: 0.75rem;
-            font-weight: 600;
-        }
-
-        /* Course Grid */
+        /* Course Grid - Mobile First */
         .course-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -456,89 +334,7 @@
             margin-right: 5px;
         }
         
-        /* Progress Tracking */
-        .progress-section {
-            background: var(--gradient);
-            color: white;
-            padding: 20px;
-            border-radius: var(--border-radius);
-            margin-bottom: 25px;
-        }
-
-        @media (min-width: 768px) {
-            .progress-section {
-                padding: 25px;
-                margin-bottom: 30px;
-            }
-        }
-        
-        .progress-stats {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .progress-stats {
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 20px;
-            }
-        }
-        
-        .stat-card {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 15px;
-            border-radius: var(--border-radius);
-            text-align: center;
-            backdrop-filter: blur(10px);
-        }
-
-        @media (min-width: 768px) {
-            .stat-card {
-                padding: 20px;
-            }
-        }
-        
-        .stat-number {
-            font-size: 2rem;
-            font-weight: 700;
-            margin-bottom: 5px;
-        }
-
-        @media (min-width: 768px) {
-            .stat-number {
-                font-size: 2.5rem;
-            }
-        }
-        
-        .stat-label {
-            font-size: 0.85rem;
-            opacity: 0.9;
-        }
-
-        @media (min-width: 768px) {
-            .stat-label {
-                font-size: 0.9rem;
-            }
-        }
-        
-        .progress-bar {
-            height: 8px;
-            background-color: #e9ecef;
-            border-radius: 4px;
-            overflow: hidden;
-            margin-bottom: 8px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background-color: var(--success);
-            border-radius: 4px;
-            transition: width 0.5s ease;
-        }
-        
-        /* Learning Interface */
+        /* Learning Interface - Mobile Optimized */
         .learning-container {
             display: flex;
             flex-direction: column;
@@ -632,7 +428,7 @@
             background: var(--success);
         }
         
-        /* Video Player */
+        /* Video Player - Responsive */
         .video-container {
             position: relative;
             width: 100%;
@@ -661,7 +457,89 @@
             }
         }
         
-        /* Buttons */
+        /* Progress Tracking */
+        .progress-section {
+            background: var(--gradient);
+            color: white;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+        }
+
+        @media (min-width: 768px) {
+            .progress-section {
+                padding: 25px;
+                margin-bottom: 30px;
+            }
+        }
+        
+        .progress-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .progress-stats {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+                gap: 20px;
+            }
+        }
+        
+        .stat-card {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: var(--border-radius);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        @media (min-width: 768px) {
+            .stat-card {
+                padding: 20px;
+            }
+        }
+        
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        @media (min-width: 768px) {
+            .stat-number {
+                font-size: 2.5rem;
+            }
+        }
+        
+        .stat-label {
+            font-size: 0.85rem;
+            opacity: 0.9;
+        }
+
+        @media (min-width: 768px) {
+            .stat-label {
+                font-size: 0.9rem;
+            }
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        
+        /* Buttons - Touch Friendly */
         .btn {
             padding: 12px 20px;
             border: none;
@@ -675,7 +553,7 @@
             gap: 8px;
             text-decoration: none;
             font-size: 14px;
-            min-height: 44px;
+            min-height: 44px; /* Minimum touch target size */
             min-width: 44px;
         }
 
@@ -803,8 +681,6 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: var(--gray);
-            min-height: 44px;
-            min-width: 44px;
         }
         
         /* Resources Section */
@@ -964,7 +840,21 @@
             to { opacity: 1; }
         }
         
-        /* Notification System */
+        /* Modern Enhancements */
+        .floating-action {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 100;
+        }
+
+        @media (min-width: 768px) {
+            .floating-action {
+                bottom: 30px;
+                right: 30px;
+            }
+        }
+        
         .notification {
             position: fixed;
             top: 20px;
@@ -1029,56 +919,13 @@
             user-select: none;
         }
 
-        /* Mobile optimizations for new layout */
-        @media (max-width: 768px) {
-            .dashboard-header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .dashboard-controls {
-                justify-content: space-between;
-            }
-
-            .mini-stats {
-                justify-content: center;
-                flex-wrap: wrap;
-            }
-
-            .user-info-compact {
-                justify-content: center;
-                text-align: center;
-            }
-
-            .stats-toggle-btn .stats-toggle-text,
-            .logout-button .logout-text {
-                display: none;
-            }
-
-            .stats-toggle-btn,
-            .logout-button {
-                padding: 10px;
-            }
-        }
-
-        /* Floating Action Button (Optional - can be removed) */
-        .floating-action {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 100;
-        }
-
-        @media (min-width: 768px) {
-            .floating-action {
-                bottom: 30px;
-                right: 30px;
-            }
+        /* Prevent horizontal scroll */
+        body {
+            overflow-x: hidden;
         }
     </style>
 </head>
 <body class="touch-optimized">
-    <!-- Rest of your HTML content remains exactly the same as in the previous response -->
     <!-- Authentication Section -->
     <div class="container auth-container" id="auth-container">
         <!-- Login Form -->
@@ -1172,23 +1019,12 @@
                     </div>
                     <div class="user-info">
                         <div class="user-avatar" id="user-avatar">U</div>
-                        <div class="user-info-compact">
-                            <div>
-                                <div id="user-name">User Name</div>
-                                <div class="user-stats-badge" id="user-stats-badge">
-                                    <span id="user-courses-count">0</span> courses • <span id="user-progress-percent">0%</span>
-                                </div>
-                            </div>
-                            <div class="dashboard-controls">
-                                <button class="stats-toggle-btn" id="stats-toggle-btn" title="Toggle Statistics">
-                                    <i class="fas fa-chart-bar"></i>
-                                    <span class="stats-toggle-text">Stats</span>
-                                </button>
-                                <button class="btn btn-outline" id="logout-button" style="padding: 8px 15px;">
-                                    <i class="fas fa-sign-out-alt"></i>
-                                    <span class="logout-text">Logout</span>
-                                </button>
-                            </div>
+                        <div>
+                            <div id="user-name">User Name</div>
+                            <button class="btn btn-outline" id="logout-button" style="padding: 5px 15px; font-size: 0.8rem; margin-top: 5px;">
+                                <i class="fas fa-sign-out-alt"></i>
+                                Logout
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -1198,39 +1034,10 @@
         <div class="container">
             <!-- Dashboard View -->
             <div id="dashboard-view">
-                <!-- Compact Dashboard Header -->
-                <div class="dashboard-header">
-                    <div>
-                        <h2 style="margin-bottom: 5px; color: var(--dark);">Your Learning Dashboard</h2>
-                        <p style="color: var(--gray);">Continue your journey to mastery</p>
-                    </div>
-                    
-                    <div class="dashboard-controls">
-                        <div class="refresh-status" id="refresh-status">
-                            <div class="refresh-indicator"></div>
-                            <span>Auto-updating</span>
-                            <span id="last-updated">Just now</span>
-                        </div>
-                        <div class="mini-stats" id="mini-stats">
-                            <div class="mini-stat-item">
-                                <i class="fas fa-book"></i>
-                                <span class="mini-stat-value" id="mini-total-courses">0</span>
-                            </div>
-                            <div class="mini-stat-item">
-                                <i class="fas fa-check-circle"></i>
-                                <span class="mini-stat-value" id="mini-completed-lessons">0</span>
-                            </div>
-                            <div class="mini-stat-item">
-                                <i class="fas fa-chart-line"></i>
-                                <span class="mini-stat-value" id="mini-completion-rate">0%</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Compact Progress Section (Hidden by Default) -->
-                <div class="compact-progress-section" id="compact-progress-section">
-                    <h3 style="margin-bottom: 15px;">Your Learning Statistics</h3>
+                <!-- Progress Overview -->
+                <div class="progress-section">
+                    <h2 style="margin-bottom: 10px;">Your Learning Dashboard</h2>
+                    <p style="opacity: 0.9;">Continue your journey to mastery</p>
                     
                     <div class="progress-stats">
                         <div class="stat-card">
@@ -1254,16 +1061,8 @@
 
                 <!-- Courses Section -->
                 <div class="card">
-                    <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
-                        <div>
-                            <h2 style="margin-bottom: 5px; color: var(--dark);">Available Courses</h2>
-                            <p style="color: var(--gray);">Expand your skills with our professional courses</p>
-                        </div>
-                        <button class="btn btn-outline" id="manual-refresh-btn" style="display: none;">
-                            <i class="fas fa-sync-alt"></i>
-                            Refresh Courses
-                        </button>
-                    </div>
+                    <h2 style="margin-bottom: 10px; color: var(--dark);">Available Courses</h2>
+                    <p style="color: var(--gray); margin-bottom: 30px;">Expand your skills with our professional courses</p>
                     
                     <div class="course-grid" id="course-grid">
                         <!-- Skeleton loading -->
@@ -1363,17 +1162,18 @@
         </div>
     </div>
 
+    <!-- Floating Action Button -->
+    <div class="floating-action">
+        <button class="btn btn-primary" id="refresh-data" title="Refresh Data">
+            <i class="fas fa-sync-alt"></i>
+        </button>
+    </div>
+
     <!-- Notification System -->
     <div class="notification" id="notification">
         <i class="fas fa-check-circle" style="color: var(--success);"></i>
         <span id="notification-text">Operation completed successfully</span>
     </div>
-
-    <!-- JavaScript remains exactly the same as in the previous response -->
-    <script>
-        // Your complete JavaScript code from the previous response goes here
-        // ... (all the JavaScript code)
-    
 
     <script>
         // *** YOUR DEPLOYED GOOGLE APPS SCRIPT URL ***
@@ -1402,22 +1202,9 @@
         const userName = document.getElementById('user-name');
         const logoutButton = document.getElementById('logout-button');
         const courseGrid = document.getElementById('course-grid');
+        const refreshButton = document.getElementById('refresh-data');
         const notification = document.getElementById('notification');
         const notificationText = document.getElementById('notification-text');
-        
-        // New dashboard elements
-        const statsToggleBtn = document.getElementById('stats-toggle-btn');
-        const compactProgressSection = document.getElementById('compact-progress-section');
-        const refreshStatus = document.getElementById('refresh-status');
-        const lastUpdated = document.getElementById('last-updated');
-        const miniStats = document.getElementById('mini-stats');
-        const miniTotalCourses = document.getElementById('mini-total-courses');
-        const miniCompletedLessons = document.getElementById('mini-completed-lessons');
-        const miniCompletionRate = document.getElementById('mini-completion-rate');
-        const userStatsBadge = document.getElementById('user-stats-badge');
-        const userCoursesCount = document.getElementById('user-courses-count');
-        const userProgressPercent = document.getElementById('user-progress-percent');
-        const manualRefreshBtn = document.getElementById('manual-refresh-btn');
         
         // Course view elements
         const backToDashboard = document.getElementById('back-to-dashboard');
@@ -1445,85 +1232,6 @@
         let courses = [];
         let courseContent = {};
         let userProgress = {};
-        let autoRefreshInterval = null;
-        let lastUpdateTime = null;
-
-        // Auto-refresh configuration
-        const AUTO_REFRESH_INTERVAL = 30000; // 30 seconds
-        const MANUAL_REFRESH_COOLDOWN = 5000; // 5 seconds
-
-        // Initialize auto-refresh
-        function initAutoRefresh() {
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
-            
-            autoRefreshInterval = setInterval(() => {
-                if (currentUser && dashboardView.style.display !== 'none') {
-                    loadCourses();
-                    loadUserProgress();
-                    updateLastUpdatedTime();
-                }
-            }, AUTO_REFRESH_INTERVAL);
-        }
-
-        // Update last updated time
-        function updateLastUpdatedTime() {
-            lastUpdateTime = new Date();
-            const now = new Date();
-            const diffMs = now - lastUpdateTime;
-            const diffSec = Math.floor(diffMs / 1000);
-            const diffMin = Math.floor(diffSec / 60);
-            
-            if (diffMin === 0) {
-                lastUpdated.textContent = 'Just now';
-            } else if (diffMin === 1) {
-                lastUpdated.textContent = '1 min ago';
-            } else {
-                lastUpdated.textContent = `${diffMin} mins ago`;
-            }
-        }
-
-        // Toggle stats visibility
-        function toggleStats() {
-            compactProgressSection.classList.toggle('show');
-            const isVisible = compactProgressSection.classList.contains('show');
-            
-            if (isVisible) {
-                statsToggleBtn.innerHTML = '<i class="fas fa-chart-bar"></i><span class="stats-toggle-text">Hide Stats</span>';
-                statsToggleBtn.style.background = 'var(--secondary)';
-            } else {
-                statsToggleBtn.innerHTML = '<i class="fas fa-chart-bar"></i><span class="stats-toggle-text">Show Stats</span>';
-                statsToggleBtn.style.background = 'var(--primary)';
-            }
-        }
-
-        // Update mini stats in header
-        function updateMiniStats() {
-            const totalCourses = courses.length;
-            let totalCompleted = 0;
-            let totalLessons = 0;
-            
-            courses.forEach(course => {
-                const progress = userProgress[course.courseid] || [];
-                totalCompleted += progress.length;
-                
-                if (courseContent[course.courseid]) {
-                    totalLessons += courseContent[course.courseid].length;
-                }
-            });
-            
-            const completionRate = totalLessons > 0 ? Math.round((totalCompleted / totalLessons) * 100) : 0;
-            
-            // Update mini stats
-            miniTotalCourses.textContent = totalCourses;
-            miniCompletedLessons.textContent = totalCompleted;
-            miniCompletionRate.textContent = completionRate + '%';
-            
-            // Update user badge
-            userCoursesCount.textContent = totalCourses;
-            userProgressPercent.textContent = completionRate + '%';
-        }
 
         // Show notification
         function showNotification(message, type = 'success') {
@@ -1696,34 +1404,18 @@
         logoutButton.addEventListener('click', function() {
             localStorage.removeItem('user');
             localStorage.removeItem('userProgress');
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
             showAuthView();
             showNotification('You have been logged out successfully');
         });
 
-        // Manual refresh handler
-        manualRefreshBtn.addEventListener('click', function() {
+        // Refresh data handler
+        refreshButton.addEventListener('click', function() {
             if (currentUser) {
                 loadCourses();
                 loadUserProgress();
-                updateLastUpdatedTime();
                 showNotification('Data refreshed successfully');
-                
-                // Disable button temporarily to prevent spam
-                manualRefreshBtn.disabled = true;
-                manualRefreshBtn.innerHTML = '<i class="fas fa-sync-alt fa-spin"></i> Refreshing...';
-                
-                setTimeout(() => {
-                    manualRefreshBtn.disabled = false;
-                    manualRefreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh Courses';
-                }, MANUAL_REFRESH_COOLDOWN);
             }
         });
-
-        // Stats toggle handler
-        statsToggleBtn.addEventListener('click', toggleStats);
 
         // Navigation handlers
         backToDashboard.addEventListener('click', showDashboardView);
@@ -1742,9 +1434,6 @@
             
             // Initialize mobile sidebar
             initMobileSidebar();
-            
-            // Start auto-refresh
-            initAutoRefresh();
             
             // Load courses and progress
             loadCourses();
@@ -1766,11 +1455,6 @@
             signupForm.reset();
             loginResponse.style.display = 'none';
             signupResponse.style.display = 'none';
-            
-            // Clear auto-refresh
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
             
             currentUser = null;
             courses = [];
@@ -1796,7 +1480,6 @@
                 if (data.result === 'success') {
                     courses = data.courses;
                     renderCourses();
-                    updateMiniStats();
                 } else {
                     console.error('Error loading courses:', data.error);
                     courseGrid.innerHTML = '<div class="empty-state"><i class="fas fa-exclamation-circle"></i><p>Error loading courses: ' + (data.error || 'Unknown error') + '</p></div>';
@@ -1831,8 +1514,6 @@
                         userProgress[progress.courseid].push(progress.contentid);
                     });
                     renderCourses(); // Refresh courses with updated progress
-                    updateMiniStats();
-                    updateDashboardStats();
                 }
             })
             .catch(error => {
@@ -1866,9 +1547,6 @@
             dashboardView.style.display = 'block';
             courseView.style.display = 'none';
             closeMobileSidebar();
-            
-            // Restart auto-refresh when returning to dashboard
-            initAutoRefresh();
         }
 
         // Show course view
@@ -1878,11 +1556,6 @@
             
             dashboardView.style.display = 'none';
             courseView.style.display = 'block';
-            
-            // Pause auto-refresh while in course view
-            if (autoRefreshInterval) {
-                clearInterval(autoRefreshInterval);
-            }
             
             // Show desktop nav controls on larger screens
             if (window.innerWidth >= 1024) {
@@ -2098,7 +1771,6 @@
             
             // Update dashboard stats
             updateDashboardStats();
-            updateMiniStats();
         }
 
         function updateDashboardStats() {
@@ -2158,7 +1830,6 @@
                     renderLessonsSidebar();
                     renderCourseView();
                     updateDashboardStats();
-                    updateMiniStats();
                     
                     // Show success message
                     showNotification('Lesson marked as complete!');
@@ -2181,10 +1852,6 @@
             } else {
                 // Mobile: Hide desktop nav controls
                 desktopNavControls.style.display = 'none';
-                
-                // Update text for mobile
-                document.querySelector('.stats-toggle-text').textContent = 'Stats';
-                document.querySelector('.logout-text').textContent = '';
             }
         }
 
@@ -2206,7 +1873,6 @@
             
             // Set initial state
             handleResize();
-            updateLastUpdatedTime();
         });
     </script>
 </body>
