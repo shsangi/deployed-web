@@ -13,53 +13,54 @@
             box-sizing: border-box;
         }
 
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Removes all scrollbars */
+        }
+
         body {
-            min-height: 100vh;
             background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
             font-family: 'Playfair Display', serif;
             display: flex;
             justify-content: center;
             align-items: center;
             position: relative;
-            overflow: hidden;
         }
 
-        /* Animated background */
+        /* Animated background that stays within bounds */
         body::before {
             content: '';
             position: absolute;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
-            background-size: 50px 50px;
-            animation: moveBackground 60s linear infinite;
-            opacity: 0.3;
+            inset: 0; /* Modern way to set top/right/bottom/left to 0 */
+            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 50%, rgba(255,182,193,0.1) 0%, transparent 50%);
+            animation: pulse 10s ease-in-out infinite alternate;
+            pointer-events: none;
         }
 
-        @keyframes moveBackground {
-            0% { transform: translate(-10%, -10%) rotate(0deg); }
-            100% { transform: translate(-30%, -30%) rotate(10deg); }
+        @keyframes pulse {
+            0% { opacity: 0.3; transform: scale(1); }
+            100% { opacity: 0.7; transform: scale(1.1); }
         }
 
         .container {
             position: relative;
-            z-index: 2;
             width: 100%;
-            max-width: 1000px;
-            padding: 2rem;
-            text-align: center;
-        }
-
-        .word-container {
-            position: relative;
-            min-height: 200px;
+            height: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
+            padding: 5%; /* Relative padding that scales */
+        }
+
+        .word-wrapper {
+            width: 100%;
+            max-width: 90vw; /* Relative to viewport width */
+            text-align: center;
         }
 
         .current-word {
-            font-size: 4rem;
             font-weight: 700;
             color: transparent;
             background: linear-gradient(135deg, #fff5e6, #ffd6b0, #ffb6c1, #c0e0ff);
@@ -67,10 +68,18 @@
             background-clip: text;
             background-size: 300% 300%;
             animation: gradientFlow 6s ease infinite, wordAppear 0.8s ease-out;
-            text-shadow: 0 0 30px rgba(255, 215, 255, 0.5);
-            line-height: 1.3;
+            text-shadow: 0 0 30px rgba(255, 215, 255, 0.3);
+            line-height: 1.2;
             display: inline-block;
-            letter-spacing: 2px;
+            letter-spacing: 0.02em;
+            word-break: break-word; /* Ensures long words wrap */
+            
+            /* Responsive font size using viewport units with fallback */
+            font-size: clamp(2rem, 8vw, 6rem);
+            
+            /* Constrain to container */
+            max-width: 100%;
+            overflow-wrap: break-word;
         }
 
         @keyframes gradientFlow {
@@ -82,11 +91,11 @@
         @keyframes wordAppear {
             0% {
                 opacity: 0;
-                transform: translateY(30px) scale(0.9);
-                filter: blur(10px);
+                transform: translateY(10%) scale(0.9);
+                filter: blur(8px);
             }
             60% {
-                transform: translateY(-5px) scale(1.02);
+                transform: translateY(-2%) scale(1.02);
             }
             100% {
                 opacity: 1;
@@ -95,7 +104,7 @@
             }
         }
 
-        /* Subtle progress indicator (barely visible) */
+        /* Ultra-subtle progress indicator */
         .progress {
             position: fixed;
             bottom: 0;
@@ -105,7 +114,9 @@
             width: 100%;
             transform-origin: left;
             animation: progress 3s linear infinite;
-            opacity: 0.3;
+            opacity: 0.2;
+            pointer-events: none;
+            z-index: 10;
         }
 
         @keyframes progress {
@@ -113,103 +124,134 @@
             100% { transform: scaleX(1); }
         }
 
-        /* Floating particles (very subtle) */
+        /* Very subtle floating particles that stay within bounds */
         .particle {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
+            position: fixed;
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 50%;
             pointer-events: none;
-            animation: floatParticle 20s infinite;
+            animation: floatParticle 15s infinite;
+            will-change: transform, opacity;
         }
 
         @keyframes floatParticle {
-            0%, 100% { transform: translate(0, 0) scale(1); opacity: 0; }
-            10% { opacity: 0.3; }
-            90% { opacity: 0.3; }
-            100% { transform: translate(100px, -100px) scale(0); opacity: 0; }
+            0% { 
+                transform: translate(0, 0) scale(1); 
+                opacity: 0; 
+            }
+            10% { 
+                opacity: 0.2; 
+            }
+            90% { 
+                opacity: 0.2; 
+            }
+            100% { 
+                transform: translate(50px, -50px) scale(0); 
+                opacity: 0; 
+            }
         }
 
-        @media (max-width: 768px) {
+        /* Handle landscape mode specially */
+        @media (orientation: landscape) and (max-height: 500px) {
             .current-word {
-                font-size: 2.5rem;
-            }
-            
-            .container {
-                padding: 1rem;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .current-word {
-                font-size: 1.8rem;
+                font-size: clamp(1.5rem, 6vh, 4rem);
             }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="word-container">
+        <div class="word-wrapper">
             <div class="current-word" id="currentWord"></div>
         </div>
     </div>
     <div class="progress" id="progressBar"></div>
 
     <script>
-        const description = "Pirah is the radiant heart of her home, blending grace with a patient spirit. As a devoted wife, her unwavering love and care ensure her husband's constant happiness. An attentive mother, she nurtures her family with deep mindfulness, creating a sanctuary of peace and beauty for everyone she loves.";
-        
-        // Split into words and clean up
-        const words = description.split(' ').map(word => word.trim()).filter(word => word.length > 0);
-        
-        let currentIndex = 0;
-        const currentWordElement = document.getElementById('currentWord');
-        const progressBar = document.getElementById('progressBar');
-
-        // Create floating particles (optional - very subtle background effect)
-        function createParticles() {
-            for (let i = 0; i < 30; i++) {
-                const particle = document.createElement('div');
-                particle.className = 'particle';
-                const size = Math.random() * 100 + 50;
-                particle.style.width = `${size}px`;
-                particle.style.height = `${size}px`;
-                particle.style.left = `${Math.random() * 100}%`;
-                particle.style.top = `${Math.random() * 100}%`;
-                particle.style.animationDelay = `${Math.random() * 20}s`;
-                particle.style.animationDuration = `${Math.random() * 10 + 20}s`;
-                document.body.appendChild(particle);
-            }
-        }
-
-        function updateWord() {
-            // Remove and re-add animation to trigger it each time
-            currentWordElement.style.animation = 'none';
-            currentWordElement.offsetHeight; // Force reflow
-            currentWordElement.style.animation = 'gradientFlow 6s ease infinite, wordAppear 0.8s ease-out';
+        // Self-contained, no external dependencies
+        (function() {
+            const description = "2-Pirah is the radiant heart of her home, blending grace with a patient spirit. As a devoted wife, her unwavering love and care ensure her husband's constant happiness. An attentive mother, she nurtures her family with deep mindfulness, creating a sanctuary of peace and beauty for everyone she loves.";
             
-            currentWordElement.textContent = words[currentIndex];
-        }
+            // Clean up words - handle punctuation properly
+            const words = description.split(' ').map(word => word.trim()).filter(word => word.length > 0);
+            
+            let currentIndex = 0;
+            const currentWordElement = document.getElementById('currentWord');
+            
+            // Create minimal background particles (fewer for performance)
+            function createParticles() {
+                const particleCount = Math.min(15, Math.floor(window.innerWidth / 100)); // Responsive particle count
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    // Random size between 20px and 150px, relative to screen size
+                    const size = Math.random() * 100 + 30;
+                    particle.style.width = `${size}px`;
+                    particle.style.height = `${size}px`;
+                    
+                    // Position within viewport bounds
+                    particle.style.left = `${Math.random() * 100}%`;
+                    particle.style.top = `${Math.random() * 100}%`;
+                    
+                    // Random animation timing
+                    particle.style.animationDelay = `${Math.random() * 10}s`;
+                    particle.style.animationDuration = `${Math.random() * 10 + 15}s`;
+                    
+                    document.body.appendChild(particle);
+                }
+            }
 
-        function nextWord() {
-            currentIndex = (currentIndex + 1) % words.length;
+            function updateWord() {
+                // Force animation restart
+                currentWordElement.style.animation = 'none';
+                // Force reflow
+                void currentWordElement.offsetHeight;
+                // Reapply animations
+                currentWordElement.style.animation = 'gradientFlow 6s ease infinite, wordAppear 0.8s ease-out';
+                
+                currentWordElement.textContent = words[currentIndex];
+            }
+
+            function nextWord() {
+                currentIndex = (currentIndex + 1) % words.length;
+                updateWord();
+            }
+
+            // Initialize
             updateWord();
-        }
+            createParticles();
+            
+            // Start the word rotation
+            setInterval(nextWord, 3000);
 
-        // Start the animation
-        createParticles();
-        updateWord();
-        
-        // Change word every 3 seconds
-        setInterval(nextWord, 3000);
+            // Optional: Very subtle background color shift (stays within bounds)
+            let hue = 0;
+            setInterval(() => {
+                hue = (hue + 0.5) % 360;
+                document.body.style.background = `linear-gradient(135deg, 
+                    hsl(${hue}, 30%, 12%), 
+                    hsl(${hue + 30}, 30%, 12%), 
+                    hsl(${hue + 60}, 30%, 12%))`;
+            }, 100);
 
-        // Optional: Add a subtle gradient change over time
-        let hue = 0;
-        setInterval(() => {
-            hue = (hue + 1) % 360;
-            document.body.style.background = `linear-gradient(135deg, 
-                hsl(${hue}, 30%, 15%), 
-                hsl(${hue + 30}, 30%, 15%), 
-                hsl(${hue + 60}, 30%, 15%))`;
-        }, 100);
+            // Handle resize events to ensure no scrollbars appear
+            function checkOverflow() {
+                // This ensures body never overflows
+                document.documentElement.style.overflow = 'hidden';
+                document.body.style.overflow = 'hidden';
+            }
+            
+            // Check on resize
+            window.addEventListener('resize', checkOverflow);
+            checkOverflow();
+
+            // Clean up on page hide
+            window.addEventListener('beforeunload', function() {
+                // No cleanup needed for setInterval as page is unloading
+            });
+        })();
     </script>
 </body>
 </html>
