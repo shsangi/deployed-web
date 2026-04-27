@@ -2,21 +2,22 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pirah</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Pirah - Fluent Reading Flow</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700;900&display=swap');
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none; /* smoother visual during word changes, no selection */
         }
 
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* Removes all scrollbars */
+            overflow: hidden; /* complete removal of scrollbars */
         }
 
         body {
@@ -26,22 +27,24 @@
             justify-content: center;
             align-items: center;
             position: relative;
+            transition: background 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
 
-        /* Animated background that stays within bounds */
+        /* animated ambient light overlay */
         body::before {
             content: '';
             position: absolute;
-            inset: 0; /* Modern way to set top/right/bottom/left to 0 */
-            background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
-                        radial-gradient(circle at 70% 50%, rgba(255,182,193,0.1) 0%, transparent 50%);
-            animation: pulse 10s ease-in-out infinite alternate;
+            inset: 0;
+            background: radial-gradient(circle at 30% 50%, rgba(255,245,220,0.12) 0%, transparent 60%),
+                        radial-gradient(circle at 70% 50%, rgba(255,200,210,0.08) 0%, transparent 60%);
+            animation: softPulse 12s ease-in-out infinite alternate;
             pointer-events: none;
+            z-index: 0;
         }
 
-        @keyframes pulse {
+        @keyframes softPulse {
             0% { opacity: 0.3; transform: scale(1); }
-            100% { opacity: 0.7; transform: scale(1.1); }
+            100% { opacity: 0.8; transform: scale(1.05); }
         }
 
         .container {
@@ -51,35 +54,56 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 5%; /* Relative padding that scales */
+            padding: 6% 8%;
+            z-index: 2;
         }
 
         .word-wrapper {
             width: 100%;
-            max-width: 90vw; /* Relative to viewport width */
+            max-width: 95vw;
             text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        .current-word {
+        /* four-word block styling: now displays 4 words horizontally */
+        .four-word-block {
             font-weight: 700;
             color: transparent;
-            background: linear-gradient(135deg, #fff5e6, #ffd6b0, #ffb6c1, #c0e0ff);
+            background: linear-gradient(135deg, #fff9ef, #ffe2b5, #ffccdd, #cae9ff);
             -webkit-background-clip: text;
             background-clip: text;
             background-size: 300% 300%;
-            animation: gradientFlow 6s ease infinite, wordAppear 0.8s ease-out;
-            text-shadow: 0 0 30px rgba(255, 215, 255, 0.3);
-            line-height: 1.2;
+            animation: gradientFlow 8s ease infinite;
+            text-shadow: 0 0 20px rgba(255, 220, 180, 0.3);
+            line-height: 1.35;
+            letter-spacing: 0.01em;
+            word-break: break-word;
             display: inline-block;
-            letter-spacing: 0.02em;
-            word-break: break-word; /* Ensures long words wrap */
-            
-            /* Responsive font size using viewport units with fallback */
-            font-size: clamp(2rem, 8vw, 6rem);
-            
-            /* Constrain to container */
             max-width: 100%;
             overflow-wrap: break-word;
+            
+            /* dynamic responsive font-size: readable but elegant */
+            font-size: clamp(1.5rem, 5vw, 3.2rem);
+            
+            /* each word group animation fade & slight slide */
+            animation: groupAppear 0.55s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
+        }
+
+        /* make inner text wrap gracefully on very small devices */
+        @media (max-width: 550px) {
+            .four-word-block {
+                font-size: clamp(1.2rem, 7vw, 2.2rem);
+                line-height: 1.4;
+            }
+        }
+
+        /* landscape ultra-compact */
+        @media (orientation: landscape) and (max-height: 500px) {
+            .four-word-block {
+                font-size: clamp(1rem, 5vh, 2rem);
+            }
         }
 
         @keyframes gradientFlow {
@@ -88,14 +112,14 @@
             100% { background-position: 0% 50%; }
         }
 
-        @keyframes wordAppear {
+        @keyframes groupAppear {
             0% {
                 opacity: 0;
-                transform: translateY(10%) scale(0.9);
-                filter: blur(8px);
+                transform: translateY(18px) scale(0.96);
+                filter: blur(6px);
             }
-            60% {
-                transform: translateY(-2%) scale(1.02);
+            40% {
+                transform: translateY(-2px) scale(1.01);
             }
             100% {
                 opacity: 1;
@@ -104,152 +128,229 @@
             }
         }
 
-        /* Ultra-subtle progress indicator */
+        /* subtle progress line */
         .progress {
             position: fixed;
             bottom: 0;
             left: 0;
             height: 2px;
-            background: linear-gradient(90deg, #ffd700, #ff6b6b, #4ecdc4);
+            background: linear-gradient(90deg, #ffd966, #ff8c8c, #6fc5d0);
             width: 100%;
             transform-origin: left;
-            animation: progress 3s linear infinite;
-            opacity: 0.2;
+            animation: progressFlow 3s linear infinite;
+            opacity: 0.28;
             pointer-events: none;
-            z-index: 10;
+            z-index: 15;
         }
 
-        @keyframes progress {
+        @keyframes progressFlow {
             0% { transform: scaleX(0); }
             100% { transform: scaleX(1); }
         }
 
-        /* Very subtle floating particles that stay within bounds */
+        /* elegant particle system (soft floating) */
         .particle {
             position: fixed;
-            background: rgba(255, 255, 255, 0.03);
+            background: radial-gradient(circle, rgba(255,235,200,0.12), rgba(210,180,140,0.05));
             border-radius: 50%;
             pointer-events: none;
-            animation: floatParticle 15s infinite;
-            will-change: transform, opacity;
+            filter: blur(3px);
+            animation: floatParticle 18s infinite alternate;
+            will-change: transform;
+            z-index: 1;
         }
 
         @keyframes floatParticle {
             0% { 
-                transform: translate(0, 0) scale(1); 
+                transform: translate(0, 0) scale(0.8); 
                 opacity: 0; 
             }
-            10% { 
-                opacity: 0.2; 
-            }
-            90% { 
-                opacity: 0.2; 
-            }
+            15% { opacity: 0.2; }
+            85% { opacity: 0.2; }
             100% { 
-                transform: translate(50px, -50px) scale(0); 
+                transform: translate(35px, -45px) scale(1.2); 
                 opacity: 0; 
             }
         }
 
-        /* Handle landscape mode specially */
-        @media (orientation: landscape) and (max-height: 500px) {
-            .current-word {
-                font-size: clamp(1.5rem, 6vh, 4rem);
-            }
+        /* optional subtle badge hint - minimal */
+        .flow-hint {
+            position: fixed;
+            bottom: 18px;
+            right: 20px;
+            font-size: 11px;
+            font-family: monospace;
+            color: rgba(255,240,200,0.45);
+            background: rgba(20,20,40,0.25);
+            backdrop-filter: blur(6px);
+            padding: 5px 10px;
+            border-radius: 40px;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+            z-index: 12;
+            font-weight: 400;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="word-wrapper">
-            <div class="current-word" id="currentWord"></div>
+            <div class="four-word-block" id="wordGroupDisplay"></div>
         </div>
     </div>
-    <div class="progress" id="progressBar"></div>
+    <div class="progress"></div>
+    <div class="flow-hint">✦流畅阅读·四词一组✦</div>
 
     <script>
-        // Self-contained, no external dependencies
         (function() {
-            const description = "پیرہ ایک ایسی باوقار شخصیت کا نام ہے جو اپنے گھر کا روشن چراغ ہیں۔ وہ نہ صرف ایک خوبصورت انسان ہیں بلکہ ایک ایسی صابر بیوی ہیں جن کی محبت اور توجہ اپنے شوہر کے لیے ہمہ وقت خوشیوں کا باعث بنتی ہے۔ ایک ہمدرد اور محتاط ماں کے طور پر، وہ اپنے خاندان کو بے پناہ سکون اور پناہ فراہم کرتی ہیں۔"
-            // Clean up words - handle punctuation properly
-            const words = description.split(' ').map(word => word.trim()).filter(word => word.length > 0);
+            // ========================
+            // original Urdu paragraph (clear, meaningful)
+            // ========================
+            const fullParagraph = "پیرہ ایک ایسی باوقار شخصیت کا نام ہے جو اپنے گھر کا روشن چراغ ہیں۔ وہ نہ صرف ایک خوبصورت انسان ہیں بلکہ ایک ایسی صابر بیوی ہیں جن کی محبت اور توجہ اپنے شوہر کے لیے ہمہ وقت خوشیوں کا باعث بنتی ہے۔ ایک ہمدرد اور محتاط ماں کے طور پر، وہ اپنے خاندان کو بے پناہ سکون اور پناہ فراہم کرتی ہیں۔";
             
-            let currentIndex = 0;
-            const currentWordElement = document.getElementById('currentWord');
+            // Clean split by spaces and filter any empty entries (punctuation attached to words is fine, keeps linguistic flow)
+            let rawWords = fullParagraph.split(' ').filter(w => w.trim().length > 0);
             
-            // Create minimal background particles (fewer for performance)
+            // Additional cleanup: some words might have zero-width but all good
+            // Goal: group words into chunks of 4 words each
+            function groupWordsIntoBlocks(wordsArray, groupSize = 4) {
+                const blocks = [];
+                for (let i = 0; i < wordsArray.length; i += groupSize) {
+                    const chunk = wordsArray.slice(i, i + groupSize);
+                    // join with spaces to form a natural 4-word block
+                    blocks.push(chunk.join(' '));
+                }
+                return blocks;
+            }
+            
+            // create blocks of exactly 4 words (last block may have 1-4 words, but still readable)
+            const wordBlocks = groupWordsIntoBlocks(rawWords, 4);
+            
+            let currentBlockIndex = 0;
+            const displayElement = document.getElementById('wordGroupDisplay');
+            
+            // create subtle particles (minimal but elegant)
             function createParticles() {
-                const particleCount = Math.min(15, Math.floor(window.innerWidth / 100)); // Responsive particle count
-                
+                const particleCount = Math.min(18, Math.floor(window.innerWidth / 110) + 6);
                 for (let i = 0; i < particleCount; i++) {
                     const particle = document.createElement('div');
                     particle.className = 'particle';
-                    
-                    // Random size between 20px and 150px, relative to screen size
-                    const size = Math.random() * 100 + 30;
+                    const size = Math.random() * 70 + 20;
                     particle.style.width = `${size}px`;
                     particle.style.height = `${size}px`;
-                    
-                    // Position within viewport bounds
                     particle.style.left = `${Math.random() * 100}%`;
                     particle.style.top = `${Math.random() * 100}%`;
-                    
-                    // Random animation timing
-                    particle.style.animationDelay = `${Math.random() * 10}s`;
-                    particle.style.animationDuration = `${Math.random() * 10 + 15}s`;
-                    
+                    particle.style.animationDelay = `${Math.random() * 12}s`;
+                    particle.style.animationDuration = `${Math.random() * 15 + 12}s`;
+                    particle.style.opacity = Math.random() * 0.3 + 0.05;
                     document.body.appendChild(particle);
                 }
             }
-
-            function updateWord() {
-                // Force animation restart
-                currentWordElement.style.animation = 'none';
-                // Force reflow
-                void currentWordElement.offsetHeight;
-                // Reapply animations
-                currentWordElement.style.animation = 'gradientFlow 6s ease infinite, wordAppear 0.8s ease-out';
-                
-                currentWordElement.textContent = words[currentIndex];
-            }
-
-            function nextWord() {
-                currentIndex = (currentIndex + 1) % words.length;
-                updateWord();
-            }
-
-            // Initialize
-            updateWord();
-            createParticles();
             
-            // Start the word rotation
-            setInterval(nextWord, 3000);
-
-            // Optional: Very subtle background color shift (stays within bounds)
-            let hue = 0;
-            setInterval(() => {
-                hue = (hue + 0.5) % 360;
-                document.body.style.background = `linear-gradient(135deg, 
-                    hsl(${hue}, 30%, 12%), 
-                    hsl(${hue + 30}, 30%, 12%), 
-                    hsl(${hue + 60}, 30%, 12%))`;
-            }, 100);
-
-            // Handle resize events to ensure no scrollbars appear
-            function checkOverflow() {
-                // This ensures body never overflows
+            // update the display with current block (4 words)
+            function updateGroupDisplay() {
+                // reset animation to create smooth re-entry effect
+                displayElement.style.animation = 'none';
+                // force reflow to restart animation
+                void displayElement.offsetHeight;
+                // re-apply both gradient animation + groupAppear
+                displayElement.style.animation = 'gradientFlow 8s ease infinite, groupAppear 0.55s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards';
+                
+                const currentGroupText = wordBlocks[currentBlockIndex];
+                displayElement.textContent = currentGroupText;
+            }
+            
+            function nextGroup() {
+                currentBlockIndex = (currentBlockIndex + 1) % wordBlocks.length;
+                updateGroupDisplay();
+            }
+            
+            // Background hue shift with elegant transitions (matching warm tones)
+            let bgHue = 0;
+            function subtleBackgroundEvolution() {
+                setInterval(() => {
+                    bgHue = (bgHue + 0.6) % 360;
+                    // softer saturation keeping readability and high aesthetic
+                    document.body.style.background = `linear-gradient(135deg, 
+                        hsl(${bgHue}, 32%, 11%), 
+                        hsl(${bgHue + 28}, 34%, 13%), 
+                        hsl(${bgHue + 55}, 30%, 16%))`;
+                }, 140);
+            }
+            
+            // EXTRA feature: restart progress ring? but no conflict, keep minimal.
+            // also ensure that scrolling never happens
+            function lockScrollAndOverflow() {
                 document.documentElement.style.overflow = 'hidden';
                 document.body.style.overflow = 'hidden';
+                document.documentElement.style.height = '100%';
+                document.body.style.height = '100%';
             }
             
-            // Check on resize
-            window.addEventListener('resize', checkOverflow);
-            checkOverflow();
-
-            // Clean up on page hide
-            window.addEventListener('beforeunload', function() {
-                // No cleanup needed for setInterval as page is unloading
+            // Responsive check for window resize: preserve no overflow and adjust particles if needed
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                lockScrollAndOverflow();
+                // optional: avoid re-creating many particles, but we can ensure body background no extra scroll
+                if (resizeTimeout) clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(() => {
+                    // just to be safe on any weird viewport shift
+                    lockScrollAndOverflow();
+                }, 100);
             });
+            
+            // Also handle dynamic content update starting sequence
+            function initDisplay() {
+                updateGroupDisplay();     // shows first 4 words
+                createParticles();
+                subtleBackgroundEvolution();
+                
+                // set interval to switch 4-word blocks every 4 seconds (comfortable reading time)
+                // somewhat slower than single word, because each block includes 4 words → natural reading pace
+                setInterval(nextGroup, 3600);
+            }
+            
+            // pre-load first group and launch
+            initDisplay();
+            lockScrollAndOverflow();
+            
+            // optional: tap any area triggers next group? for accessibility but preserve auto. but we keep auto only.
+            // smoother touch experience: no unexpected jumps.
+            // small easter egg: double-tap on container speeds transition? not needed, but nice.
+            // Additional fix: support for screen orientation change, lock overflow again.
+            window.addEventListener('orientationchange', () => {
+                setTimeout(() => {
+                    lockScrollAndOverflow();
+                    // force smooth rendering
+                    displayElement.style.transform = 'translateZ(0)';
+                }, 30);
+            });
+            
+            // graceful memory: we don't store huge references. the particles stay light.
+            // show total word blocks info in console? not needed, but debug ensures grouping.
+            console.log(`Pirah fluent reader: ${rawWords.length} words → ${wordBlocks.length} groups of 4 words each.`);
+            
+            // optional dynamic update for any punctuation perfection: text remains poetic.
+            // In case of weird rtl/ltr mixing, the Urdu text direction is naturally right-to-left 
+            // but the display container handles it fine because Urdu script flows beautifully.
+            // add implicit dir attribute for better native rendering: ensure alignment
+            displayElement.setAttribute('dir', 'rtl');
+            // but some words might have Latin numbers but it's fine, the block shows perfectly.
+            
+            // slight extra: add hover glow but keep minimal
+            const style = document.createElement('style');
+            style.textContent = `
+                .four-word-block {
+                    transition: text-shadow 0.3s ease;
+                }
+                .container:hover .four-word-block {
+                    text-shadow: 0 0 12px rgba(255,215,170,0.5);
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // performance: add will-change to animated element
+            displayElement.style.willChange = 'transform, opacity, background-position';
         })();
     </script>
 </body>
