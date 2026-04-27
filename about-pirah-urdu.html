@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ur">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Pirah - Fluent Reading Flow</title>
+    <title>پیرہ - چار الفاظ میں روانی</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;700;900&display=swap');
 
@@ -11,13 +11,13 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none; /* smoother visual during word changes, no selection */
+            user-select: none;
         }
 
         html, body {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* complete removal of scrollbars */
+            overflow: hidden;
         }
 
         body {
@@ -30,7 +30,6 @@
             transition: background 0.8s cubic-bezier(0.2, 0.9, 0.4, 1.1);
         }
 
-        /* animated ambient light overlay */
         body::before {
             content: '';
             position: absolute;
@@ -67,7 +66,6 @@
             align-items: center;
         }
 
-        /* four-word block styling: now displays 4 words horizontally */
         .four-word-block {
             font-weight: 700;
             color: transparent;
@@ -83,15 +81,10 @@
             display: inline-block;
             max-width: 100%;
             overflow-wrap: break-word;
-            
-            /* dynamic responsive font-size: readable but elegant */
             font-size: clamp(1.5rem, 5vw, 3.2rem);
-            
-            /* each word group animation fade & slight slide */
             animation: groupAppear 0.55s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards;
         }
 
-        /* make inner text wrap gracefully on very small devices */
         @media (max-width: 550px) {
             .four-word-block {
                 font-size: clamp(1.2rem, 7vw, 2.2rem);
@@ -99,7 +92,6 @@
             }
         }
 
-        /* landscape ultra-compact */
         @media (orientation: landscape) and (max-height: 500px) {
             .four-word-block {
                 font-size: clamp(1rem, 5vh, 2rem);
@@ -128,7 +120,6 @@
             }
         }
 
-        /* subtle progress line */
         .progress {
             position: fixed;
             bottom: 0;
@@ -148,7 +139,6 @@
             100% { transform: scaleX(1); }
         }
 
-        /* elegant particle system (soft floating) */
         .particle {
             position: fixed;
             background: radial-gradient(circle, rgba(255,235,200,0.12), rgba(210,180,140,0.05));
@@ -172,24 +162,6 @@
                 opacity: 0; 
             }
         }
-
-        /* optional subtle badge hint - minimal */
-        .flow-hint {
-            position: fixed;
-            bottom: 18px;
-            right: 20px;
-            font-size: 11px;
-            font-family: monospace;
-            color: rgba(255,240,200,0.45);
-            background: rgba(20,20,40,0.25);
-            backdrop-filter: blur(6px);
-            padding: 5px 10px;
-            border-radius: 40px;
-            letter-spacing: 0.5px;
-            pointer-events: none;
-            z-index: 12;
-            font-weight: 400;
-        }
     </style>
 </head>
 <body>
@@ -199,37 +171,30 @@
         </div>
     </div>
     <div class="progress"></div>
-    <div class="flow-hint">✦流畅阅读·四词一组✦</div>
 
     <script>
         (function() {
-            // ========================
-            // original Urdu paragraph (clear, meaningful)
-            // ========================
+            // Original Urdu paragraph - meaningful and respectful
             const fullParagraph = "پیرہ ایک ایسی باوقار شخصیت کا نام ہے جو اپنے گھر کا روشن چراغ ہیں۔ وہ نہ صرف ایک خوبصورت انسان ہیں بلکہ ایک ایسی صابر بیوی ہیں جن کی محبت اور توجہ اپنے شوہر کے لیے ہمہ وقت خوشیوں کا باعث بنتی ہے۔ ایک ہمدرد اور محتاط ماں کے طور پر، وہ اپنے خاندان کو بے پناہ سکون اور پناہ فراہم کرتی ہیں۔";
             
-            // Clean split by spaces and filter any empty entries (punctuation attached to words is fine, keeps linguistic flow)
+            // Split into words (by spaces)
             let rawWords = fullParagraph.split(' ').filter(w => w.trim().length > 0);
             
-            // Additional cleanup: some words might have zero-width but all good
-            // Goal: group words into chunks of 4 words each
+            // Group words into chunks of 4
             function groupWordsIntoBlocks(wordsArray, groupSize = 4) {
                 const blocks = [];
                 for (let i = 0; i < wordsArray.length; i += groupSize) {
                     const chunk = wordsArray.slice(i, i + groupSize);
-                    // join with spaces to form a natural 4-word block
                     blocks.push(chunk.join(' '));
                 }
                 return blocks;
             }
             
-            // create blocks of exactly 4 words (last block may have 1-4 words, but still readable)
             const wordBlocks = groupWordsIntoBlocks(rawWords, 4);
-            
             let currentBlockIndex = 0;
             const displayElement = document.getElementById('wordGroupDisplay');
             
-            // create subtle particles (minimal but elegant)
+            // Create subtle background particles
             function createParticles() {
                 const particleCount = Math.min(18, Math.floor(window.innerWidth / 110) + 6);
                 for (let i = 0; i < particleCount; i++) {
@@ -247,17 +212,13 @@
                 }
             }
             
-            // update the display with current block (4 words)
+            // Update display with current 4-word block
             function updateGroupDisplay() {
-                // reset animation to create smooth re-entry effect
                 displayElement.style.animation = 'none';
-                // force reflow to restart animation
-                void displayElement.offsetHeight;
-                // re-apply both gradient animation + groupAppear
+                void displayElement.offsetHeight; // force reflow
                 displayElement.style.animation = 'gradientFlow 8s ease infinite, groupAppear 0.55s cubic-bezier(0.2, 0.9, 0.4, 1.1) forwards';
                 
-                const currentGroupText = wordBlocks[currentBlockIndex];
-                displayElement.textContent = currentGroupText;
+                displayElement.textContent = wordBlocks[currentBlockIndex];
             }
             
             function nextGroup() {
@@ -265,12 +226,11 @@
                 updateGroupDisplay();
             }
             
-            // Background hue shift with elegant transitions (matching warm tones)
+            // Gentle background color evolution
             let bgHue = 0;
             function subtleBackgroundEvolution() {
                 setInterval(() => {
                     bgHue = (bgHue + 0.6) % 360;
-                    // softer saturation keeping readability and high aesthetic
                     document.body.style.background = `linear-gradient(135deg, 
                         hsl(${bgHue}, 32%, 11%), 
                         hsl(${bgHue + 28}, 34%, 13%), 
@@ -278,8 +238,7 @@
                 }, 140);
             }
             
-            // EXTRA feature: restart progress ring? but no conflict, keep minimal.
-            // also ensure that scrolling never happens
+            // Lock overflow to prevent any scrolling
             function lockScrollAndOverflow() {
                 document.documentElement.style.overflow = 'hidden';
                 document.body.style.overflow = 'hidden';
@@ -287,57 +246,40 @@
                 document.body.style.height = '100%';
             }
             
-            // Responsive check for window resize: preserve no overflow and adjust particles if needed
+            // Handle resize gracefully
             let resizeTimeout;
             window.addEventListener('resize', () => {
                 lockScrollAndOverflow();
-                // optional: avoid re-creating many particles, but we can ensure body background no extra scroll
                 if (resizeTimeout) clearTimeout(resizeTimeout);
                 resizeTimeout = setTimeout(() => {
-                    // just to be safe on any weird viewport shift
                     lockScrollAndOverflow();
                 }, 100);
             });
             
-            // Also handle dynamic content update starting sequence
+            // Initialize everything
             function initDisplay() {
-                updateGroupDisplay();     // shows first 4 words
+                updateGroupDisplay();
                 createParticles();
                 subtleBackgroundEvolution();
-                
-                // set interval to switch 4-word blocks every 4 seconds (comfortable reading time)
-                // somewhat slower than single word, because each block includes 4 words → natural reading pace
+                // Rotate every 3.6 seconds -> comfortable for reading 4 words
                 setInterval(nextGroup, 3600);
             }
             
-            // pre-load first group and launch
             initDisplay();
             lockScrollAndOverflow();
             
-            // optional: tap any area triggers next group? for accessibility but preserve auto. but we keep auto only.
-            // smoother touch experience: no unexpected jumps.
-            // small easter egg: double-tap on container speeds transition? not needed, but nice.
-            // Additional fix: support for screen orientation change, lock overflow again.
+            // Re-lock on orientation change
             window.addEventListener('orientationchange', () => {
                 setTimeout(() => {
                     lockScrollAndOverflow();
-                    // force smooth rendering
                     displayElement.style.transform = 'translateZ(0)';
                 }, 30);
             });
             
-            // graceful memory: we don't store huge references. the particles stay light.
-            // show total word blocks info in console? not needed, but debug ensures grouping.
-            console.log(`Pirah fluent reader: ${rawWords.length} words → ${wordBlocks.length} groups of 4 words each.`);
-            
-            // optional dynamic update for any punctuation perfection: text remains poetic.
-            // In case of weird rtl/ltr mixing, the Urdu text direction is naturally right-to-left 
-            // but the display container handles it fine because Urdu script flows beautifully.
-            // add implicit dir attribute for better native rendering: ensure alignment
+            // Set proper text direction for Urdu (right-to-left)
             displayElement.setAttribute('dir', 'rtl');
-            // but some words might have Latin numbers but it's fine, the block shows perfectly.
             
-            // slight extra: add hover glow but keep minimal
+            // Optional smooth hover effect
             const style = document.createElement('style');
             style.textContent = `
                 .four-word-block {
@@ -349,8 +291,9 @@
             `;
             document.head.appendChild(style);
             
-            // performance: add will-change to animated element
             displayElement.style.willChange = 'transform, opacity, background-position';
+            
+            console.log(`پیرہ فلوئنٹ ریڈر: ${rawWords.length} الفاظ → ${wordBlocks.length} گروپ (چار چار الفاظ)`);
         })();
     </script>
 </body>
