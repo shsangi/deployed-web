@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Periods & Love — Graph Viewer</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root { --pink:#e91e63; --pink-soft:#f8bbd0; --ink:#222; }
+  body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+         margin: 0; padding: 24px; background:#fff7fa; color:var(--ink); }
+  h1 { font-size:1.4rem; margin:0 0 16px; }
+  .card { background:#fff; border-radius:14px; padding:18px;
+          box-shadow:0 4px 18px rgba(0,0,0,.06); margin-bottom:18px; }
+  .controls { display:flex; flex-wrap:wrap; gap:12px; align-items:end; }
+  label { display:flex; flex-direction:column; font-size:.85rem; gap:4px; }
+  input, select, button { font:inherit; padding:8px 10px; border-radius:8px;
+          border:1px solid #ddd; }
+  button { background:var(--pink); color:#fff; border:none; cursor:pointer; }
+  button.secondary { background:#eee; color:#333; }
+  textarea { width:100%; min-height:110px; font-family:ui-monospace, monospace;
+             font-size:.8rem; border-radius:8px; border:1px solid #ddd; padding:10px; }
+  canvas { max-height:420px; }
+  .hint { font-size:.8rem; color:#777; }
+</style>
+</head>
+<body>
+
+<h1>🌸 Periods & Love — Graph Viewer</h1>
+
+<div class="card">
+  <p class="hint">Paste your CSV below (first row = headers), or upload a file.
+     Expected columns (case-insensitive, fuzzy match): a <b>date</b> column and one or more
+     numeric columns like <b>period</b>, <b>love</b>, <b>score</b>, etc.</p>
+  <textarea id="csvInput" placeholder="date,period,love
+2024-01-01,5,8
+2024-01-02,4,7
+2024-01-03,6,9"></textarea>
+  <div class="controls" style="margin-top:10px;">
+    <label>Upload CSV <input type="file" id="fileInput" accept=".csv,text/csv"></label>
+    <label>Chart type
+      <select id="chartType">
+        <option value="line">Line</option>
+        <option value="bar">Bar</option>
+        <option value="scatter">Scatter</option>
+      </select>
+    </label>
+    <label>From <input type="date" id="fromDate"></label>
+    <label>To <input type="date" id="toDate"></label>
+    <button id="renderBtn">Render</button>
+    <button class="secondary" id="clearBtn">Clear</button>
+  </div>
+</div>
+
+<div class="card">
+  <canvas id="chart"></canvas>
+</div>
+
+<script>
+let chart = null;
+
+/* ---------- tiny CSV parser (handles quotes & commas) ---------- */
+function parseCSV(text) {
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (inQuotes) {
+      if (c === '"' && text[i+1] === '"') { field += '"'; i++; }
+      else if (c === '"') inQuotes = false;
+      else field += c;
+    } else {
+      if (c === '"') inQuotes = true;
+      else if (c === ',') { row.push(field); field = ''; }
+      else if (c === '\n' || c === '\r') {
+        if (field || row.length) { row.push(field); rows.push(row); row=[]; field=''; }
+        if (c === '\r' && text[i+1] === '\n') i++;
+      } else field += c;
+    }
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  return rows;
+}
+
+/* ---------- find which header is the date, which are numeric ---------- */
+function findColumns(headers, rows) {
+  const lower = headers.map(h => h.trim().toLowerCase());
+  let dateIdx = lower.findIndex(h => /date|day|time/.test(h));
+  if (dateIdx === -1) dateIdx = 0; // fallback
+
+  const numericIdx = [];
+  headers.forEach((h, i) => {
+    if (i === dateIdx) return;
+    const sample = rows.slice(1, 20).map(r => r[i]).filter(v => v !== '' && v != null);
+    if (sample.length && sample.every(v => !isNaN(parseFloat(v)))) numericIdx.push(i);
+  });
+  return { dateIdx, numericIdx };
+}
+
+/* ---------- parse a date string loosely ---------- */
+function parseDate(s) {
+  s = (s || '').trim();
+  if (!s) return null;
+  // try ISO / yyyy-mm-dd / yyyy/mm/dd
+  let d = new Date(s);
+  if (!isNaN(d)) return d;
+  // try dd/mm/yyyy or dd-mm-yyyy
+  const m = s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);
+  if (m) {
+    let [, a, b, c] = m;
+    if (c.length === 2) c = '20' + c;
+    // assume dd/mm/yyyy
+    d = new Date(+c, +b - 1, +a);
+    if (!isNaN(d)) return d;
+  }
+  return null;
+}
+
+/* ---------- main render ---------- */
+function render() {
+  const raw = document.getElementById('csvInput').value.trim();
+  if (!raw) { alert('Paste some CSV first.'); return; }
+
+  const rows = parseCSV(raw).filter(r => r.some(c => c !== ''));
+  if (rows.length < 2) { alert('Need a header row + at least one data row.'); return; }
+
+  const headers = rows[0];
+  const dataRows = rows.slice(1);
+  const { dateIdx, numericIdx } = findColumns(headers, rows);
+
+  if (!numericIdx.length) { alert('No numeric columns found (period/love/etc).'); return; }
+
+  // build points
+  let points = dataRows.map(r => {
+    const d = parseDate(r[dateIdx]);
+    const vals = numericIdx.map(i => parseFloat(r[i]));
+    return { d, vals };
+  }).filter(p => p.d && p.vals.every(v => !isNaN(v)));
+
+  // date filter
+  const fromEl = document.getElementById('fromDate');
+  const toEl   = document.getElementById('toDate');
+  if (fromEl.value) { const f = new Date(fromEl.value); points = points.filter(p => p.d >= f); }
+  if (toEl.value)   { const t = new Date(toEl.value);   t.setHours(23,59,59); points = points.filter(p => p.d <= t); }
+
+  points.sort((a,b) => a.d - b.d);
+
+  if (!points.length) { alert('No valid points in that range.'); return; }
+
+  // set defaults for date pickers from data
+  if (!fromEl.value && points.length) fromEl.value = points[0].d.toISOString().slice(0,10);
+  if (!toEl.value && points.length)   toEl.value   = points[points.length-1].d.toISOString().slice(0,10);
+
+  const labels = points.map(p => p.d.toISOString().slice(0,10));
+  const type = document.getElementById('chartType').value;
+
+  const palette = ['#e91e63','#9c27b0','#3f51b5','#00bcd4','#4caf50','#ff9800'];
+
+  const datasets = numericIdx.map((colIdx, k) => {
+    const name = headers[colIdx].trim();
+    return {
+      label: name,
+      data: points.map(p => p.vals[k]),
+      borderColor: palette[k % palette.length],
+      backgroundColor: palette[k % palette.length] + '33',
+      borderWidth: 2,
+      pointRadius: 3,
+      tension: 0.3,
+      fill: false,
+      // for scatter we need {x,y}; handled below
+    };
+  });
+
+  let chartData;
+  if (type === 'scatter') {
+    chartData = {
+      datasets: numericIdx.map((colIdx, k) => ({
+        label: headers[colIdx].trim(),
+        data: points.map(p => ({ x: p.d.toISOString().slice(0,10), y: p.vals[k] })),
+        backgroundColor: palette[k % palette.length],
+        pointRadius: 4,
+      }))
+    };
+  } else {
+    chartData = { labels, datasets };
+  }
+
+  if (chart) chart.destroy();
+  const ctx = document.getElementById('chart').getContext('2d');
+  chart = new Chart(ctx, {
+    type: type === 'scatter' ? 'scatter' : type,
+    data: chartData,
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { position: 'top' },
+        title: { display: true, text: 'Periods & Love over Time' },
+        tooltip: { callbacks: { title: items => items[0]?.label ?? items[0]?.parsed?.x ?? '' } }
+      },
+      scales: {
+        x: {
+          type: type === 'scatter' ? 'category' : 'category',
+          title: { display: true, text: 'Date' },
+          ticks: { maxRotation: 45, autoSkip: true, maxTicksLimit: 20 }
+        },
+        y: { beginAtZero: true, title: { display: true, text: 'Value' } }
+      }
+    }
+  });
+}
+
+/* ---------- events ---------- */
+document.getElementById('renderBtn').addEventListener('click', render);
+document.getElementById('chartType').addEventListener('change', render);
+document.getElementById('fileInput').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = ev => { document.getElementById('csvInput').value = ev.target.result; render(); };
+  reader.readAsText(f);
+});
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('csvInput').value = '';
+  document.getElementById('fromDate').value = '';
+  document.getElementById('toDate').value = '';
+  if (chart) { chart.destroy(); chart = null; }
+});
+</script>
+</body>
+</html>
