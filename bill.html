@@ -43,22 +43,27 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0.75rem;
-            position: relative; 
+            position: relative;
         }
 
-        /* Version Tag */
+        /* ============================================================
+           VERSION TAG — FIXED: high contrast, larger, always on top
+           ============================================================ */
         .version-tag {
             position: absolute;
             top: 0.75rem;
             right: 0.75rem;
-            font-size: 0.65rem;
-            color: #94a3b8;
-            font-weight: 600;
+            font-size: 0.7rem;
+            color: #ffffff;
+            font-weight: 700;
             letter-spacing: 0.5px;
-            background: #e2e8f0;
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
-            z-index: 10;
+            background: var(--primary);
+            padding: 0.25rem 0.55rem;
+            border-radius: 6px;
+            z-index: 999;
+            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
+            line-height: 1;
+            white-space: nowrap;
         }
 
         /* Header & Controls */
@@ -127,12 +132,12 @@
         /* --- DESKTOP VIEW --- */
         @media (min-width: 769px) {
             .container { padding: 2rem; }
-            .version-tag { top: 2rem; right: 2rem; }
+            .version-tag { top: 2rem; right: 2rem; font-size: 0.75rem; }
             header { margin-top: 0; }
             .controls { width: auto; flex-wrap: nowrap; }
             h1 { font-size: 1.5rem; margin-bottom: 1rem; }
             .controls select { flex: none; min-width: 120px; font-size: 0.9rem; }
-            
+
             th, td {
                 padding: 0.8rem 0.5rem;
                 border-bottom: 1px solid var(--border);
@@ -166,7 +171,7 @@
         /* --- MOBILE VIEW (SINGLE ROW WITH CHIPS & HEADERS) --- */
         @media (max-width: 768px) {
             #monthlyTable { table-layout: fixed; }
-            
+
             #monthlyTable thead { display: table-header-group; }
             #monthlyTable th {
                 padding: 0.3rem 0.1rem;
@@ -176,7 +181,7 @@
                 background: #f8fafc;
                 color: var(--text-muted);
                 border-bottom: 1px solid var(--border);
-                white-space: nowrap; 
+                white-space: nowrap;
                 line-height: 1.1;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -230,13 +235,13 @@
 
             .month-subtotal-row { background: #e2e8f0 !important; font-weight: 700 !important; }
             .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.55rem; }
-            
+
             .month-subtotal-row td:nth-child(1) { visibility: hidden; }
             .month-subtotal-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; }
-            
+
             .grand-total-row { background: var(--text-main) !important; color: white !important; border-radius: 6px; margin-top: 1rem; }
             .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.55rem; color: white !important; }
-            
+
             .grand-total-row td:nth-child(1) { visibility: hidden; }
             .grand-total-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; color: #cbd5e1 !important; }
         }
@@ -318,7 +323,7 @@
             padding: 0.2rem;
         }
         .modal-close:hover { color: #ef4444; }
-        
+
         .modal-body {
             padding: 1.25rem;
             display: flex;
@@ -374,7 +379,7 @@
 
 <div class="container">
     <div class="version-tag">v 0.1</div>
-    
+
     <header>
         <h1>Monthly Breakdown</h1>
         <div class="controls">
@@ -437,7 +442,7 @@
     const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=2';
 
     let allData = [];
-    let processedData = []; 
+    let processedData = [];
 
     async function init() {
         try {
@@ -468,7 +473,7 @@
             const monthYearStr = row['bill_month_year'] || '';
             let month = 'Unknown';
             let year = 'Unknown';
-            let dateObj = new Date(0); 
+            let dateObj = new Date(0);
 
             if (monthYearStr && monthYearStr.includes('-')) {
                 const parts = monthYearStr.split('-');
@@ -486,24 +491,24 @@
                     if (Array.isArray(historyObj)) {
                         for (let i = 0; i < historyObj.length; i++) {
                             const record = historyObj[i];
-                            
+
                             // Loop through all keys in the object to find anything that looks like a payment
                             let rawPaid = record.payment;
                             if (rawPaid === undefined) rawPaid = record.amount_paid;
                             if (rawPaid === undefined) rawPaid = record.amount;
                             if (rawPaid === undefined) rawPaid = record.paid;
                             if (rawPaid === undefined) rawPaid = record.amt;
-                            
+
                             if (typeof rawPaid === 'string') {
-                                rawPaid = rawPaid.replace(/[^0-9.-]+/g, ""); 
+                                rawPaid = rawPaid.replace(/[^0-9.-]+/g, "");
                             }
 
                             const parsedPaid = parseFloat(rawPaid);
-                            
+
                             // If it's a valid number and greater than 0, we found it!
                             if (!isNaN(parsedPaid) && parsedPaid > 0) {
                                 lastPaidAmount = parsedPaid;
-                                break; 
+                                break;
                             }
                         }
                     }
@@ -592,7 +597,7 @@
                 const amount = parseFloat(row['current_month_amount']) || 0;
                 const arrears = parseFloat(row['arrears_previous_dues']) || 0;
                 const paid = parseFloat(row._lastPaidAmount) || 0;
-                
+
                 monthTotalDue += due;
                 monthTotalAmount += amount;
                 monthTotalArrears += arrears;
@@ -604,7 +609,7 @@
 
                 const tr = document.createElement('tr');
                 if (rowIndex === 0) tr.className = 'month-start-row';
-                
+
                 tr.addEventListener('click', () => openModal(row));
 
                 tr.innerHTML = `
@@ -662,8 +667,8 @@
         const jsonFields = [];
 
         for (const [key, value] of Object.entries(rowData)) {
-            if (key.startsWith('_')) continue; 
-            
+            if (key.startsWith('_')) continue;
+
             if (key.endsWith('_json') && value) {
                 jsonFields.push({key, value});
             } else {
@@ -675,11 +680,11 @@
             const groupDiv = document.createElement('div');
             groupDiv.className = 'detail-group';
             groupDiv.innerHTML = `<div class="detail-group-title">Bill Information</div>`;
-            
+
             standardFields.forEach(field => {
                 const displayKey = field.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
                 const displayVal = field.value !== null && field.value !== '' ? field.value : '-';
-                
+
                 const rowDiv = document.createElement('div');
                 rowDiv.className = 'detail-row';
                 rowDiv.innerHTML = `
@@ -695,7 +700,7 @@
             const displayKey = field.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
             const groupDiv = document.createElement('div');
             groupDiv.className = 'detail-group';
-            
+
             try {
                 const parsed = JSON.parse(field.value);
                 groupDiv.innerHTML = `
