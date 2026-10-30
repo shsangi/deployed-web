@@ -152,14 +152,14 @@
             /* Column headers */
             #monthlyTable thead { display: table-header-group; }
             #monthlyTable th {
-                padding: 0.4rem 0.1rem;
-                font-size: 0.5rem;
+                padding: 0.3rem 0.1rem;
+                font-size: 0.45rem; /* Made slightly smaller to fit headers */
                 text-transform: uppercase;
                 text-align: center;
                 background: #f8fafc;
                 color: var(--text-muted);
                 border-bottom: 1px solid var(--border);
-                white-space: nowrap; /* Prevents headers from wrapping */
+                white-space: nowrap; 
                 line-height: 1.1;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -168,7 +168,7 @@
             #monthlyTable td {
                 padding: 0.5rem 0.1rem;
                 border-bottom: 1px solid var(--border);
-                font-size: 0.65rem;
+                font-size: 0.6rem; /* Smaller font so numbers fit */
                 text-align: center;
                 vertical-align: middle;
                 overflow: hidden;
@@ -176,21 +176,21 @@
                 white-space: nowrap;
             }
 
-            /* Adjust column widths for the 9 columns to fit */
-            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 5%; color: var(--text-muted); font-size: 0.55rem; }
-            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 15%; font-weight: 700; color: var(--primary); }
-            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 15%; font-size: 0.55rem; }
-            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 8%; }
+            /* Adjust column widths - giving more room to numbers */
+            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 4%; color: var(--text-muted); font-size: 0.5rem; }
+            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 14%; font-weight: 700; color: var(--primary); }
+            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 14%; font-size: 0.5rem; }
+            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 6%; }
             #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 12%; }
             #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 6%; }
             #monthlyTable th:nth-child(7), #monthlyTable td:nth-child(7) { width: 13%; }
-            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 13%; } /* Increased Arrears width */
-            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 13%; } /* Increased Paid width */
+            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 15%; } /* MORE WIDTH for arrears */
+            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 16%; } /* MORE WIDTH for paid */
 
             /* CHIP STYLING FOR MOBILE VALUES */
             .mobile-chip {
                 display: inline-block;
-                padding: 0.15rem 0.2rem;
+                padding: 0.15rem 0.1rem;
                 border-radius: 3px;
                 font-size: 0.55rem;
                 font-weight: 700;
@@ -215,14 +215,14 @@
 
             /* Subtotal Row */
             .month-subtotal-row { background: #e2e8f0 !important; font-weight: 700 !important; }
-            .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.6rem; }
+            .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.55rem; }
             
             .month-subtotal-row td:nth-child(1) { visibility: hidden; }
             .month-subtotal-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; }
             
             /* Grand Total Row */
             .grand-total-row { background: var(--text-main) !important; color: white !important; border-radius: 6px; margin-top: 1rem; }
-            .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.6rem; color: white !important; }
+            .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.55rem; color: white !important; }
             
             .grand-total-row td:nth-child(1) { visibility: hidden; }
             .grand-total-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; color: #cbd5e1 !important; }
@@ -463,7 +463,7 @@
                 dateObj = new Date(`01-${month}-${year}`);
             }
 
-            // IMPROVED: Loop through history to find the most recent non-zero payment
+            // BULLETPROOF EXTRACTION OF LAST PAID AMOUNT
             let lastPaidAmount = null;
             try {
                 const historyStr = row['bill_payment_history_json'];
@@ -472,18 +472,31 @@
                     if (Array.isArray(historyObj)) {
                         for (let i = 0; i < historyObj.length; i++) {
                             const record = historyObj[i];
-                            // Check both 'payment' and 'amount_paid' keys
-                            const rawPaid = record.payment !== undefined ? record.payment : record.amount_paid;
+                            
+                            // Look for any key that implies a payment amount
+                            let rawPaid = record.payment;
+                            if (rawPaid === undefined) rawPaid = record.amount_paid;
+                            if (rawPaid === undefined) rawPaid = record.amount;
+                            if (rawPaid === undefined) rawPaid = record.paid;
+                            
+                            // Sometimes data is stored as "Rs. 500" or "500.00"
+                            if (typeof rawPaid === 'string') {
+                                rawPaid = rawPaid.replace(/[^0-9.-]+/g, ""); // Strip non-numeric chars
+                            }
+
                             const parsedPaid = parseFloat(rawPaid);
                             
+                            // If it's a valid number and greater than 0, we found our last paid amount
                             if (!isNaN(parsedPaid) && parsedPaid > 0) {
                                 lastPaidAmount = parsedPaid;
-                                break; // Stop at the first (most recent) valid payment
+                                break; // Stop looking once we find the most recent valid payment
                             }
                         }
                     }
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("JSON parse error on row", row);
+            }
 
             return {
                 ...row,
