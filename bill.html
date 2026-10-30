@@ -188,7 +188,7 @@
                 text-align: left;
             }
 
-            .month-group-header { background-color: #f1f5f9 !important; color: var(--primary) !important; font-size: 1rem !important; text-align: left !important; padding: 0.8rem 1rem !important; }
+            /* Subtotal & Grand Total styling for Desktop */
             .month-subtotal-row { background-color: #f8fafc !important; font-weight: 700 !important; border-top: 2px solid var(--border) !important; }
             .grand-total-row { background-color: #e2e8f0 !important; font-weight: 700 !important; color: var(--text-main) !important; }
             
@@ -223,10 +223,9 @@
                 border: 1px dashed var(--border);
             }
 
-            /* Keep table layout fixed to fit screen */
             #monthlyTable { table-layout: fixed; }
             
-            /* Show column headers, but style them tiny */
+            /* Column headers */
             #monthlyTable thead { display: table-header-group; }
             #monthlyTable th {
                 padding: 0.4rem 0.1rem;
@@ -236,7 +235,7 @@
                 background: #f8fafc;
                 color: var(--text-muted);
                 border-bottom: 1px solid var(--border);
-                white-space: normal; /* Allow wrapping */
+                white-space: normal;
                 line-height: 1.1;
             }
 
@@ -252,15 +251,15 @@
             }
 
             /* Adjust column widths for the 9 columns to fit */
-            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 5%; color: var(--text-muted); font-size: 0.6rem; } /* Sr */
-            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 15%; font-weight: 700; color: var(--primary); } /* Home */
-            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 15%; font-size: 0.6rem; } /* Month */
-            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 10%; } /* Utility */
-            #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 13%; } /* Due */
-            #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 7%; } /* Units */
-            #monthlyTable th:nth-child(7), #monthlyTable td:nth-child(7) { width: 13%; } /* Amount */
-            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 11%; } /* Arrears */
-            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 11%; } /* Paid */
+            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 5%; color: var(--text-muted); font-size: 0.6rem; }
+            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 15%; font-weight: 700; color: var(--primary); }
+            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 15%; font-size: 0.6rem; }
+            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 10%; }
+            #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 13%; }
+            #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 7%; }
+            #monthlyTable th:nth-child(7), #monthlyTable td:nth-child(7) { width: 13%; }
+            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 11%; }
+            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 11%; }
 
             /* CHIP STYLING FOR MOBILE VALUES */
             .mobile-chip {
@@ -283,20 +282,9 @@
             .chip-gas { background: var(--gas-bg); color: var(--gas-text); font-size: 0.5rem; padding: 0.1rem 0.2rem; }
             .negative-arrears { color: #10b981 !important; background: #ecfdf5 !important; }
 
-            /* Month Header Row */
-            .month-group-header {
-                background: var(--primary) !important;
-                color: white !important;
-                border-radius: 4px;
-                padding: 0.3rem !important;
-                margin-top: 0.75rem;
-                margin-bottom: 0.25rem;
-                font-size: 0.7rem !important;
-                text-align: center !important;
-                font-weight: 600;
-                border: none;
-                width: 100%;
-                display: block;
+            /* Visual separator for new month groups instead of a huge header */
+            tr.month-start-row td {
+                border-top: 2px solid var(--primary) !important;
             }
 
             /* Subtotal Row */
@@ -624,18 +612,13 @@
         let grandTotalDue = 0, grandTotalAmount = 0, grandTotalArrears = 0, grandTotalPaid = 0;
         let globalRowCounter = 1;
 
-        sortedKeys.forEach(key => {
+        sortedKeys.forEach((key, index) => {
             const group = groupedData[key];
             const rows = group.rows;
 
-            const headerTr = document.createElement('tr');
-            headerTr.className = 'month-group-header';
-            headerTr.innerHTML = `<td colspan="9">${key}</td>`;
-            tbody.appendChild(headerTr);
-
             let monthTotalDue = 0, monthTotalAmount = 0, monthTotalArrears = 0, monthTotalPaid = 0;
 
-            rows.forEach(row => {
+            rows.forEach((row, rowIndex) => {
                 const due = parseFloat(row['current_month_due']) || 0;
                 const amount = parseFloat(row['current_month_amount']) || 0;
                 const arrears = parseFloat(row['arrears_previous_dues']) || 0;
@@ -648,11 +631,15 @@
 
                 const isElectric = String(row['utility_type']).toLowerCase() === 'electric';
                 const badgeClass = isElectric ? 'badge-electric' : 'badge-gas';
-                
-                // For mobile chips
                 const chipUtilClass = isElectric ? 'chip-electric' : 'chip-gas';
 
                 const tr = document.createElement('tr');
+                
+                // Add class to the very first row of a new month to create a visual divider
+                if (rowIndex === 0) {
+                    tr.className = 'month-start-row';
+                }
+
                 tr.innerHTML = `
                     <td>${globalRowCounter++}</td>
                     <td>${row['home_number'] || '-'}</td>
