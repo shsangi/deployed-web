@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Utility Bills Dashboard</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --electric: #f59e0b;
+            --gas: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text-main);
+            padding: 2rem;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #0f172a;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+        }
+
+        input[type="text"], select {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            background: var(--card-bg);
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .table-container {
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            overflow-x: auto;
+            border: 1px solid var(--border);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th, td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: top;
+            font-size: 0.9rem;
+        }
+
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background-color: #f8fafc;
+        }
+
+        /* Badge Styles */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        
+        .badge-electric {
+            background-color: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge-gas {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        /* JSON Viewer styling */
+        .json-view {
+            background: #f8fafc;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.75rem;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 0.8rem;
+            color: #334155;
+            white-space: pre-wrap;
+            word-break: break-all;
+            max-height: 150px;
+            overflow-y: auto;
+            min-width: 200px;
+        }
+
+        .json-key { color: #0f172a; font-weight: bold; }
+        .json-string { color: #059669; }
+        .json-number { color: #2563eb; }
+        .json-boolean { color: #d97706; }
+        .json-null { color: #ef4444; }
+
+        /* Loading & Error States */
+        .status-msg {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        .error {
+            color: #ef4444;
+            background: #fee2e2;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            body { padding: 1rem; }
+            header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .controls { width: 100%; flex-direction: column; }
+            input[type="text"], select { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Utility Bills Data</h1>
+        <div class="controls">
+            <input type="text" id="searchInput" placeholder="Search by Home No, Name, etc...">
+            <select id="typeFilter">
+                <option value="all">All Utilities</option>
+                <option value="Electric">Electric Only</option>
+                <option value="Gas">Gas Only</option>
+            </select>
+        </div>
+    </header>
+
+    <div id="errorContainer" class="error" style="display: none;"></div>
+    
+    <div class="table-container">
+        <table id="dataTable">
+            <thead id="tableHead">
+                <!-- Headers injected by JS -->
+            </thead>
+            <tbody id="tableBody">
+                <tr>
+                    <td colspan="100%" class="status-msg">Loading data from Google Sheets...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv';
+
+    let allData = [];
+    let headers = [];
+
+    // Initialize application
+    async function init() {
+        try {
+            const response = await fetch(CSV_URL);
+            if (!response.ok) throw new Error('Failed to fetch CSV data');
+            const csvText = await response.text();
+
+            // Parse CSV using PapaParse
+            Papa.parse(csvText, {
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    allData = results.data;
+                    headers = results.meta.fields;
+                    renderHeaders();
+                    renderTable(allData);
+                    setupEventListeners();
+                },
+                error: function(error) {
+                    showError('Error parsing CSV: ' + error.message);
+                }
+            });
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Render Table Headers dynamically from CSV
+    function renderHeaders() {
+        const thead = document.getElementById('tableHead');
+        thead.innerHTML = '';
+        
+        const tr = document.createElement('tr');
+        headers.forEach(header => {
+            const th = document.createElement('th');
+            // Format header nicely (e.g., current_month_due -> Current Month Due)
+            const displayHeader = header.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+            th.textContent = displayHeader;
+            tr.appendChild(th);
+        });
+        thead.appendChild(tr);
+    }
+
+    // Render Table Rows
+    function renderTable(data) {
+        const tbody = document.getElementById('tableBody');
+        tbody.innerHTML = '';
+
+        if (data.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="100%" class="status-msg">No records found matching your criteria.</td></tr>';
+            return;
+        }
+
+        data.forEach(row => {
+            const tr = document.createElement('tr');
+            
+            headers.forEach(header => {
+                const td = document.createElement('td');
+                let value = row[header];
+
+                if (header === 'utility_type') {
+                    const badgeClass = value.toLowerCase() === 'electric' ? 'badge-electric' : 'badge-gas';
+                    td.innerHTML = `<span class="badge ${badgeClass}">${value}</span>`;
+                } 
+                else if (header.endsWith('_json') && value) {
+                    // Format JSON beautifully
+                    try {
+                        const jsonObj = JSON.parse(value);
+                        td.innerHTML = `<div class="json-view">${syntaxHighlight(jsonObj)}</div>`;
+                    } catch (e) {
+                        td.innerHTML = `<div class="json-view" style="color:red;">Invalid JSON</div>`;
+                    }
+                } 
+                else {
+                    td.textContent = value !== null && value !== undefined ? value : '';
+                }
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    // Setup Search and Filter
+    function setupEventListeners() {
+        const searchInput = document.getElementById('searchInput');
+        const typeFilter = document.getElementById('typeFilter');
+
+        const filterData = () => {
+            const query = searchInput.value.toLowerCase();
+            const type = typeFilter.value;
+
+            const filtered = allData.filter(row => {
+                // Type filter
+                const matchesType = type === 'all' || row['utility_type'] === type;
+                
+                // Search filter (searches across all text values)
+                const matchesQuery = Object.values(row).some(val => 
+                    String(val).toLowerCase().includes(query)
+                );
+
+                return matchesType && matchesQuery;
+            });
+
+            renderTable(filtered);
+        };
+
+        searchInput.addEventListener('input', filterData);
+        typeFilter.addEventListener('change', filterData);
+    }
+
+    // Helper to nicely syntax highlight JSON
+    function syntaxHighlight(json) {
+        if (typeof json != 'string') {
+             json = JSON.stringify(json, undefined, 2);
+        }
+        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+            var cls = 'json-number';
+            if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                    cls = 'json-key';
+                } else {
+                    cls = 'json-string';
+                }
+            } else if (/true|false/.test(match)) {
+                cls = 'json-boolean';
+            } else if (/null/.test(match)) {
+                cls = 'json-null';
+            }
+            return '<span class="' + cls + '">' + match + '</span>';
+        });
+    }
+
+    // Error Handler
+    function showError(msg) {
+        const errDiv = document.getElementById('errorContainer');
+        errDiv.textContent = msg;
+        errDiv.style.display = 'block';
+        document.getElementById('tableBody').innerHTML = '<tr><td colspan="100%" class="status-msg" style="color:red;">Failed to load data.</td></tr>';
+    }
+
+    // Run on load
+    document.addEventListener('DOMContentLoaded', init);
+</script>
+
+</body>
+</html>
