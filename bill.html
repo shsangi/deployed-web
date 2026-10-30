@@ -46,13 +46,34 @@
             position: relative;
         }
 
-        /* ============================================================
-           VERSION TAG — FIXED: high contrast, larger, always on top
-           ============================================================ */
+        /* Header & Controls */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.75rem;
+            margin-top: 0.5rem; /* Adjusted margin */
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* Updated Title Area for Version Tag */
+        .title-area {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-main);
+            margin: 0;
+        }
+
         .version-tag {
-            position: absolute;
-            top: 0.75rem;
-            right: 0.75rem;
             font-size: 0.7rem;
             color: #ffffff;
             font-weight: 700;
@@ -64,25 +85,6 @@
             box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
             line-height: 1;
             white-space: nowrap;
-        }
-
-        /* Header & Controls */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            margin-top: 1.5rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
-
-        h1 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin-bottom: 0.5rem;
-            width: 100%;
         }
 
         .controls {
@@ -132,10 +134,10 @@
         /* --- DESKTOP VIEW --- */
         @media (min-width: 769px) {
             .container { padding: 2rem; }
-            .version-tag { top: 2rem; right: 2rem; font-size: 0.75rem; }
             header { margin-top: 0; }
+            .title-area { margin-bottom: 1rem; }
             .controls { width: auto; flex-wrap: nowrap; }
-            h1 { font-size: 1.5rem; margin-bottom: 1rem; }
+            h1 { font-size: 1.5rem; }
             .controls select { flex: none; min-width: 120px; font-size: 0.9rem; }
 
             th, td {
@@ -378,10 +380,13 @@
 <body>
 
 <div class="container">
-    <div class="version-tag">v 0.1</div>
-
     <header>
-        <h1>Monthly Breakdown</h1>
+        <!-- Version tag moved into the title area -->
+        <div class="title-area">
+            <h1>Monthly Breakdown</h1>
+            <div class="version-tag">v 0.2</div>
+        </div>
+        
         <div class="controls">
             <select id="filterMonth">
                 <option value="all">Month</option>
@@ -438,8 +443,8 @@
 </div>
 
 <script>
-    // ADDED CACHE BUSTER: &v=2 to force GitHub to give latest data
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=2';
+    // ADDED CACHE BUSTER: &v=3 to force GitHub to give latest data
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=3';
 
     let allData = [];
     let processedData = [];
@@ -482,34 +487,32 @@
                 dateObj = new Date(`01-${month}-${year}`);
             }
 
-            // 100% Bulletproof JSON Extraction
+            // 100% Bulletproof JSON Extraction for Payment
             let lastPaidAmount = null;
             try {
                 const historyStr = row['bill_payment_history_json'];
                 if (historyStr) {
                     const historyObj = JSON.parse(historyStr);
-                    if (Array.isArray(historyObj)) {
-                        for (let i = 0; i < historyObj.length; i++) {
-                            const record = historyObj[i];
+                    if (Array.isArray(historyObj) && historyObj.length > 0) {
+                        // Grab the most recent entry (first in the array based on your screenshot)
+                        const record = historyObj[0];
 
-                            // Loop through all keys in the object to find anything that looks like a payment
-                            let rawPaid = record.payment;
-                            if (rawPaid === undefined) rawPaid = record.amount_paid;
-                            if (rawPaid === undefined) rawPaid = record.amount;
-                            if (rawPaid === undefined) rawPaid = record.paid;
-                            if (rawPaid === undefined) rawPaid = record.amt;
+                        // Loop through properties to find the payment amount
+                        let rawPaid = record.payment;
+                        if (rawPaid === undefined) rawPaid = record.amount_paid;
+                        if (rawPaid === undefined) rawPaid = record.amount;
+                        if (rawPaid === undefined) rawPaid = record.paid;
+                        if (rawPaid === undefined) rawPaid = record.amt;
 
-                            if (typeof rawPaid === 'string') {
-                                rawPaid = rawPaid.replace(/[^0-9.-]+/g, "");
-                            }
+                        // Clean string and parse
+                        if (typeof rawPaid === 'string') {
+                            rawPaid = rawPaid.replace(/[^0-9.-]+/g, "");
+                        }
+                        
+                        const parsedPaid = parseFloat(rawPaid);
 
-                            const parsedPaid = parseFloat(rawPaid);
-
-                            // If it's a valid number and greater than 0, we found it!
-                            if (!isNaN(parsedPaid) && parsedPaid > 0) {
-                                lastPaidAmount = parsedPaid;
-                                break;
-                            }
+                        if (!isNaN(parsedPaid) && parsedPaid > 0) {
+                            lastPaidAmount = parsedPaid;
                         }
                     }
                 }
