@@ -90,7 +90,7 @@
             font-size: 1.1rem;
             font-weight: 700;
             color: var(--text-main);
-            display: none; /* Hide on mobile */
+            display: none;
         }
 
         .controls {
@@ -155,7 +155,6 @@
             width: 100%;
             border-collapse: collapse;
             text-align: left;
-            table-layout: fixed; /* Force equal width columns */
         }
 
         /* --- DESKTOP VIEW --- */
@@ -173,15 +172,12 @@
                 border-bottom: 1px solid var(--border);
                 font-size: 0.85rem;
                 white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
             }
 
             th {
                 background-color: #f8fafc;
                 font-weight: 600;
                 color: var(--text-muted);
-                table-layout: auto; /* Let desktop size naturally */
             }
 
             #monthlyTable th, #monthlyTable td { text-align: right; }
@@ -213,12 +209,11 @@
             }
         }
 
-        /* --- MOBILE VIEW (SINGLE ROW WITH CHIPS) --- */
+        /* --- MOBILE VIEW (SINGLE ROW WITH CHIPS & HEADERS) --- */
         @media (max-width: 768px) {
-            /* Hide complex detailed tab on mobile */
             #detailedTab .table-container { display: none; }
             #detailedTab::after {
-                content: "Detailed JSON view is only available on desktop screens for better readability.";
+                content: "Detailed view is only available on desktop.";
                 display: block;
                 text-align: center;
                 padding: 2rem;
@@ -228,67 +223,75 @@
                 border: 1px dashed var(--border);
             }
 
-            /* Table Layout adjustments */
+            /* Keep table layout fixed to fit screen */
             #monthlyTable { table-layout: fixed; }
             
-            /* Hide less critical columns to make it fit */
-            #monthlyTable th:nth-child(3), 
-            #monthlyTable td:nth-child(3),
-            #monthlyTable th:nth-child(4), 
-            #monthlyTable td:nth-child(4) {
-                display: none; /* Hide Bill Month (implied by group) & Utility (implied by color) */
+            /* Show column headers, but style them tiny */
+            #monthlyTable thead { display: table-header-group; }
+            #monthlyTable th {
+                padding: 0.4rem 0.1rem;
+                font-size: 0.55rem;
+                text-transform: uppercase;
+                text-align: center;
+                background: #f8fafc;
+                color: var(--text-muted);
+                border-bottom: 1px solid var(--border);
+                white-space: normal; /* Allow wrapping */
+                line-height: 1.1;
             }
-
-            #monthlyTable th { display: none; } /* Hide headers on mobile */
 
             #monthlyTable td {
                 padding: 0.5rem 0.1rem;
                 border-bottom: 1px solid var(--border);
-                font-size: 0.7rem;
+                font-size: 0.65rem;
                 text-align: center;
                 vertical-align: middle;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                white-space: nowrap;
             }
 
-            /* Column Widths (Fit to screen) */
-            #monthlyTable td:nth-child(1) { width: 8%; color: var(--text-muted); font-size: 0.65rem; }
-            #monthlyTable td:nth-child(2) { width: 22%; font-weight: 700; color: var(--primary); font-size: 0.75rem; }
-            #monthlyTable td:nth-child(5) { width: 18%; }
-            #monthlyTable td:nth-child(7) { width: 18%; }
-            #monthlyTable td:nth-child(8) { width: 16%; }
-            #monthlyTable td:nth-child(9) { width: 18%; }
+            /* Adjust column widths for the 9 columns to fit */
+            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 5%; color: var(--text-muted); font-size: 0.6rem; } /* Sr */
+            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 15%; font-weight: 700; color: var(--primary); } /* Home */
+            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 15%; font-size: 0.6rem; } /* Month */
+            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 10%; } /* Utility */
+            #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 13%; } /* Due */
+            #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 7%; } /* Units */
+            #monthlyTable th:nth-child(7), #monthlyTable td:nth-child(7) { width: 13%; } /* Amount */
+            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 11%; } /* Arrears */
+            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 11%; } /* Paid */
 
             /* CHIP STYLING FOR MOBILE VALUES */
             .mobile-chip {
                 display: inline-block;
-                padding: 0.2rem 0.4rem;
-                border-radius: 4px;
-                font-size: 0.65rem;
-                font-weight: 600;
-                white-space: nowrap;
+                padding: 0.15rem 0.2rem;
+                border-radius: 3px;
+                font-size: 0.6rem;
+                font-weight: 700;
                 max-width: 100%;
                 overflow: hidden;
                 text-overflow: ellipsis;
+                vertical-align: middle;
             }
 
             .chip-due { background: var(--due-bg); color: var(--due-text); }
             .chip-amount { background: #e0e7ff; color: #3730a3; }
             .chip-arrears { background: #f3f4f6; color: #4b5563; }
             .chip-paid { background: var(--paid-bg); color: var(--paid-text); }
-            .chip-electric { background: var(--electric-bg); color: var(--electric-text); }
-            .chip-gas { background: var(--gas-bg); color: var(--gas-text); }
+            .chip-electric { background: var(--electric-bg); color: var(--electric-text); font-size: 0.5rem; padding: 0.1rem 0.2rem; }
+            .chip-gas { background: var(--gas-bg); color: var(--gas-text); font-size: 0.5rem; padding: 0.1rem 0.2rem; }
             .negative-arrears { color: #10b981 !important; background: #ecfdf5 !important; }
 
             /* Month Header Row */
             .month-group-header {
                 background: var(--primary) !important;
                 color: white !important;
-                border-radius: 6px;
-                padding: 0.5rem !important;
-                margin-top: 1rem;
-                margin-bottom: 0.5rem;
-                font-size: 0.85rem !important;
+                border-radius: 4px;
+                padding: 0.3rem !important;
+                margin-top: 0.75rem;
+                margin-bottom: 0.25rem;
+                font-size: 0.7rem !important;
                 text-align: center !important;
                 font-weight: 600;
                 border: none;
@@ -298,45 +301,20 @@
 
             /* Subtotal Row */
             .month-subtotal-row { background: #e2e8f0 !important; font-weight: 700 !important; }
-            .month-subtotal-row td { padding: 0.5rem 0.1rem; }
+            .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.65rem; }
             
-            .month-subtotal-row td:nth-child(1),
-            .month-subtotal-row td:nth-child(2),
-            .month-subtotal-row td:nth-child(3),
-            .month-subtotal-row td:nth-child(4),
-            .month-subtotal-row td:nth-child(6) { display: none; }
-
-            .month-subtotal-row td:nth-child(5),
-            .month-subtotal-row td:nth-child(7),
-            .month-subtotal-row td:nth-child(8),
-            .month-subtotal-row td:nth-child(9) {
-                display: table-cell;
-                font-size: 0.7rem;
-            }
-
+            .month-subtotal-row td:nth-child(1) { visibility: hidden; }
+            .month-subtotal-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; }
+            
             /* Grand Total Row */
-            .grand-total-row { background: var(--text-main) !important; color: white !important; border-radius: 8px; margin-top: 1.5rem; }
-            .grand-total-row td { padding: 0.6rem 0.1rem; font-size: 0.75rem; color: white !important; }
+            .grand-total-row { background: var(--text-main) !important; color: white !important; border-radius: 6px; margin-top: 1rem; }
+            .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.65rem; color: white !important; }
             
-            .grand-total-row td:nth-child(1),
-            .grand-total-row td:nth-child(2),
-            .grand-total-row td:nth-child(3),
-            .grand-total-row td:nth-child(4),
-            .grand-total-row td:nth-child(6) { display: none; }
-
-            .grand-total-row td:nth-child(5),
-            .grand-total-row td:nth-child(7),
-            .grand-total-row td:nth-child(8),
-            .grand-total-row td:nth-child(9) {
-                display: table-cell;
-            }
-
-            /* Mobile Group Header logic */
-            tbody tr.month-group-header { display: table-row; }
-            tbody tr.month-group-header td { display: block; width: 100%; }
+            .grand-total-row td:nth-child(1) { visibility: hidden; }
+            .grand-total-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; color: #cbd5e1 !important; }
         }
 
-        /* Common Badges */
+        /* Common Badges (Desktop) */
         .badge {
             display: inline-block;
             padding: 0.2rem 0.5rem;
@@ -390,15 +368,15 @@
             <table id="monthlyTable">
                 <thead>
                     <tr>
-                        <th>#</th>
+                        <th>Sr</th>
                         <th>Home</th>
                         <th>Month</th>
-                        <th>Utility</th>
-                        <th>Current Due</th>
+                        <th>Type</th>
+                        <th>Due</th>
                         <th>Units</th>
-                        <th>Bill Amount</th>
+                        <th>Amount</th>
                         <th>Arrears</th>
-                        <th>Last Paid</th>
+                        <th>Paid</th>
                     </tr>
                 </thead>
                 <tbody id="monthlyBody">
@@ -679,7 +657,7 @@
                     <td>${globalRowCounter++}</td>
                     <td>${row['home_number'] || '-'}</td>
                     <td>${row['bill_month_year']}</td>
-                    <td><span class="badge ${badgeClass}">${row['utility_type'] || '-'}</span></td>
+                    <td><span class="badge ${badgeClass} ${chipUtilClass}" style="display:none;"></span><span class="mobile-chip ${chipUtilClass}">${isElectric ? 'E' : 'G'}</span></td>
                     <td><span class="mobile-chip chip-due">${due.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
                     <td>${row['current_month_units'] || '0'}</td>
                     <td><span class="mobile-chip chip-amount">${amount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
