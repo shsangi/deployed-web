@@ -379,10 +379,9 @@
 
 <div class="container">
     <header>
-        <!-- Version tag integrated correctly in the title line -->
         <div class="title-area">
             <h1>Monthly Breakdown</h1>
-            <div class="version-tag">v 0.3</div>
+            <div class="version-tag">v 0.4</div>
         </div>
         
         <div class="controls">
@@ -441,8 +440,8 @@
 </div>
 
 <script>
-    // Added &v=4 to force browser cache refresh
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=4';
+    // Force cache busting with timestamp
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&nocache=' + new Date().getTime();
 
     let allData = [];
     let processedData = [];
@@ -485,21 +484,27 @@
                 dateObj = new Date(`01-${month}-${year}`);
             }
 
-            // JSON Extraction for Payment History
+            // --- FIXED JSON EXTRACTION ---
             let lastPaidAmount = null;
             try {
-                const historyStr = row['bill_payment_history_json'];
+                const historyStr = row['payment_history_json'] || row['bill_payment_history_json'];
                 if (historyStr) {
                     const historyObj = JSON.parse(historyStr);
                     if (Array.isArray(historyObj) && historyObj.length > 0) {
-                        // Gets the most recent month's payment
-                        const record = historyObj[0];
+                        // Sort descending by date (e.g., "09/26" > "08/26")
+                        historyObj.sort((a, b) => {
+                            const dateA = a.mm_yy || a.month_year || '';
+                            const dateB = b.mm_yy || b.month_year || '';
+                            return dateB.localeCompare(dateA);
+                        });
 
-                        // Loop through typical keys to find the paid amount
-                        let rawPaid = record.payment;
-                        if (rawPaid === undefined) rawPaid = record.amount_paid;
-                        if (rawPaid === undefined) rawPaid = record.amount;
-                        if (rawPaid === undefined) rawPaid = record.paid;
+                        // Grab the most recent record
+                        const latestRecord = historyObj[0];
+                        
+                        // Extract the payment value (handles various naming conventions)
+                        let rawPaid = latestRecord.payment;
+                        if (rawPaid === undefined) rawPaid = latestRecord.amount_paid;
+                        if (rawPaid === undefined) rawPaid = latestRecord.amount;
 
                         if (typeof rawPaid === 'string') {
                             rawPaid = rawPaid.replace(/[^0-9.-]+/g, "");
@@ -507,6 +512,7 @@
                         
                         const parsedPaid = parseFloat(rawPaid);
 
+                        // Only assign if it's a valid positive number
                         if (!isNaN(parsedPaid) && parsedPaid > 0) {
                             lastPaidAmount = parsedPaid;
                         }
