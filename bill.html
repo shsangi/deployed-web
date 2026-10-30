@@ -7,7 +7,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
-            --primary: #3b82f6; /* Modern Blue */
+            --primary: #3b82f6;
             --primary-hover: #2563eb;
             --bg: #f1f5f9;
             --card-bg: #ffffff;
@@ -34,11 +34,12 @@
             background-color: var(--bg);
             color: var(--text-main);
             line-height: 1.5;
-            overflow-x: hidden;
+            /* Prevent page-level horizontal scroll */
+            overflow-x: hidden; 
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 1rem;
         }
@@ -88,7 +89,7 @@
             font-size: 1.25rem;
             font-weight: 700;
             color: var(--text-main);
-            display: none; /* Hide on mobile to save space */
+            display: none; 
         }
 
         .controls {
@@ -99,10 +100,10 @@
         }
 
         input[type="text"], select {
-            padding: 0.75rem 1rem;
+            padding: 0.6rem 0.8rem;
             border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.95rem;
+            border-radius: 8px;
+            font-size: 0.9rem;
             outline: none;
             background: var(--card-bg);
             color: var(--text-main);
@@ -111,8 +112,8 @@
             appearance: none;
             background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
             background-repeat: no-repeat;
-            background-position: right 1rem top 50%;
-            background-size: 0.65rem auto;
+            background-position: right 0.8rem top 50%;
+            background-size: 0.6rem auto;
         }
 
         input[type="text"]:focus, select:focus {
@@ -129,21 +130,118 @@
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* --- MODERN TABLE / CARD STYLES --- */
-        .table-container {
+        /* --- STRICT TABLE STYLES --- */
+        .table-wrapper {
             background: var(--card-bg);
-            border-radius: 16px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            border: 1px solid var(--border);
+            /* Enable horizontal scroll for the table ONLY */
+            overflow-x: auto;
+            /* Smooth scrolling on iOS */
+            -webkit-overflow-scrolling: touch; 
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
             text-align: left;
+            min-width: 700px; /* Ensures table doesn't squish too much */
         }
 
-        /* Desktop View Setup */
+        th, td {
+            padding: 0.75rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+            font-size: 0.85rem;
+            white-space: nowrap;
+        }
+
+        th {
+            background-color: #f8fafc;
+            font-weight: 600;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        /* Alignments */
+        #monthlyTable th, #monthlyTable td { text-align: right; }
+        #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1),
+        #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2),
+        #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3),
+        #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) {
+            text-align: left;
+        }
+
+        /* Sticky First Column */
+        #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) {
+            position: sticky;
+            left: 0;
+            background-color: var(--card-bg);
+            z-index: 5;
+            border-right: 1px solid var(--border);
+            font-weight: 600;
+            color: var(--primary);
+        }
+        
+        #monthlyTable th:nth-child(2) {
+            background-color: #f8fafc;
+            z-index: 11;
+        }
+
+        /* Row Highlights */
+        .month-group-header {
+            background-color: #e0e7ff !important; 
+            color: #3730a3 !important; 
+            font-size: 0.9rem !important; 
+            text-align: left !important; 
+            padding: 0.75rem 1rem !important;
+        }
+        
+        .month-subtotal-row { 
+            background-color: #f8fafc !important; 
+            font-weight: 700 !important; 
+            border-top: 2px solid var(--border) !important; 
+        }
+        
+        .grand-total-row { 
+            background-color: var(--text-main) !important; 
+            font-weight: 700 !important; 
+            color: white !important; 
+        }
+        .grand-total-row td { border-bottom: none !important; }
+        .grand-total-row td:nth-child(2) { background-color: var(--text-main) !important; color: white !important; border-right: none; }
+
+        /* Badges (Chips) */
+        .badge {
+            display: inline-block;
+            padding: 0.2rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        
+        .badge-electric { background-color: var(--electric-bg); color: var(--electric-text); }
+        .badge-gas { background-color: var(--gas-bg); color: var(--gas-text); }
+        
+        .paid-chip {
+            background-color: var(--paid-bg);
+            color: var(--paid-text);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.8rem;
+            display: inline-block;
+        }
+        
+        .negative-arrears { color: #10b981; font-weight: 600; }
+
+        /* Desktop Enhancements */
         @media (min-width: 769px) {
             .controls { width: auto; }
             h1 { display: block; font-size: 1.5rem; }
@@ -152,43 +250,13 @@
             
             th, td {
                 padding: 1rem;
-                border-bottom: 1px solid var(--border);
                 font-size: 0.9rem;
             }
-
-            th {
-                background-color: #f8fafc;
-                font-weight: 600;
-                color: var(--text-muted);
-                white-space: nowrap;
-            }
-
-            #monthlyTable th, #monthlyTable td { text-align: right; }
-            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1),
-            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2),
-            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3),
-            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) {
-                text-align: left;
-            }
-
-            .month-group-header { background-color: #f1f5f9 !important; color: var(--primary) !important; font-size: 1rem !important; text-align: left !important; padding: 1rem !important; }
-            .month-subtotal-row { background-color: #f8fafc !important; font-weight: 700 !important; border-top: 2px solid var(--border) !important; }
-            .grand-total-row { background-color: #e2e8f0 !important; font-weight: 700 !important; color: var(--text-main) !important; }
-            .grand-total-row td { border-bottom: none !important; }
         }
 
-        /* Mobile Card View (Ultra Modern) */
+        /* Mobile Detailed View (JSON) */
         @media (max-width: 768px) {
-            table, thead, tbody, th, td, tr { display: block; }
-            thead { display: none; } /* Hide table headers on mobile */
-            
-            .table-container {
-                background: transparent;
-                box-shadow: none;
-            }
-
-            /* Hide the complex raw table on Detailed Data for mobile (Too much JSON) */
-            #detailedTab .table-container { display: none; }
+            #detailedTab .table-wrapper { display: none; }
             #detailedTab::after {
                 content: "Detailed JSON view is only available on desktop screens for better readability.";
                 display: block;
@@ -199,137 +267,13 @@
                 border-radius: 12px;
                 border: 1px dashed var(--border);
             }
-
-            /* Monthly Summary Card Style */
-            #monthlyTable tr {
-                background: var(--card-bg);
-                border-radius: 12px;
-                margin-bottom: 1rem;
-                box-shadow: 0 2px 4px rgba(0,0,0,0.04);
-                border: 1px solid var(--border);
-                padding: 1rem;
-                position: relative;
-            }
-
-            #monthlyTable td {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 0.5rem 0;
-                border: none;
-                font-size: 0.9rem;
-                text-align: right;
-            }
-
-            /* Add labels before the values */
-            #monthlyTable td::before {
-                font-weight: 600;
-                color: var(--text-muted);
-                font-size: 0.85rem;
-            }
-
-            #monthlyTable td:nth-child(1)::before { content: "Sr. No"; }
-            #monthlyTable td:nth-child(2)::before { content: "Home"; }
-            #monthlyTable td:nth-child(3)::before { content: "Month"; }
-            #monthlyTable td:nth-child(4)::before { content: "Utility"; }
-            #monthlyTable td:nth-child(5)::before { content: "Current Due"; }
-            #monthlyTable td:nth-child(6)::before { content: "Units"; }
-            #monthlyTable td:nth-child(7)::before { content: "Bill Amount"; }
-            #monthlyTable td:nth-child(8)::before { content: "Arrears"; }
-            #monthlyTable td:nth-child(9)::before { content: "Last Paid"; }
-
-            /* Typography Highlights for Mobile */
-            #monthlyTable td:nth-child(2) { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
-            #monthlyTable td:nth-child(7) { font-size: 1rem; font-weight: 700; color: var(--text-main); }
-
-            /* Month Header Row */
-            .month-group-header {
-                background: var(--primary) !important;
-                color: white !important;
-                border-radius: 8px;
-                padding: 0.6rem 1rem !important;
-                margin-top: 1.5rem;
-                margin-bottom: 0.75rem;
-                font-size: 0.95rem !important;
-                text-align: center !important;
-                font-weight: 600;
-                border: none;
-                box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
-            }
-
-            /* Subtotal Card */
-            .month-subtotal-row {
-                background: #e2e8f0 !important;
-                border: none !important;
-                margin-bottom: 1.5rem !important;
-                padding: 0.75rem 1rem !important;
-            }
-            .month-subtotal-row td { padding: 0.25rem 0; }
-            .month-subtotal-row td:nth-child(1) { display: none; }
-            .month-subtotal-row td:nth-child(2) { display: none; }
-            .month-subtotal-row td:nth-child(3) { display: none; }
-            .month-subtotal-row td:nth-child(4) { display: none; }
-            
-            .month-subtotal-row td:nth-child(5)::before { content: "Subtotal Due"; }
-            .month-subtotal-row td:nth-child(6) { display: none; }
-            .month-subtotal-row td:nth-child(7)::before { content: "Subtotal Amount"; }
-            .month-subtotal-row td:nth-child(8)::before { content: "Subtotal Arrears"; }
-            .month-subtotal-row td:nth-child(9)::before { content: "Subtotal Paid"; }
-
-            /* Grand Total Card */
-            .grand-total-row {
-                background: var(--text-main) !important;
-                color: white !important;
-                border-radius: 12px;
-                padding: 1rem !important;
-                margin-top: 2rem;
-                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            }
-            .grand-total-row td { padding: 0.25rem 0; color: white !important; }
-            .grand-total-row td::before { color: #cbd5e1 !important; }
-            .grand-total-row td:nth-child(1) { display: none; }
-            .grand-total-row td:nth-child(2) { display: none; }
-            .grand-total-row td:nth-child(3) { display: none; }
-            .grand-total-row td:nth-child(4) { display: none; }
-            
-            .grand-total-row td:nth-child(5)::before { content: "GRAND TOTAL DUE"; color: white !important; }
-            .grand-total-row td:nth-child(6) { display: none; }
-            .grand-total-row td:nth-child(7)::before { content: "TOTAL AMOUNT"; color: white !important; }
-            .grand-total-row td:nth-child(8)::before { content: "TOTAL ARREARS"; color: white !important; }
-            .grand-total-row td:nth-child(9)::before { content: "TOTAL PAID"; color: white !important; }
         }
-
-        /* Badges (Chips) */
-        .badge {
-            display: inline-block;
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        
-        .badge-electric { background-color: var(--electric-bg); color: var(--electric-text); }
-        .badge-gas { background-color: var(--gas-bg); color: var(--gas-text); }
-        
-        .paid-chip {
-            background-color: var(--paid-bg);
-            color: var(--paid-text);
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-            font-weight: 600;
-            font-size: 0.85rem;
-            display: inline-block;
-        }
-        
-        .negative-arrears { color: #10b981; font-weight: 500; }
 
         /* Utilities */
-        .status-msg { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 1rem; }
+        .status-msg { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.95rem; }
         .error { color: #ef4444; background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
         
-        .json-view { display: none; } /* Hide JSON on mobile */
+        .json-view { display: none; }
         @media (min-width: 769px) {
             .json-view {
                 display: block;
@@ -381,7 +325,7 @@
             </div>
         </header>
 
-        <div class="table-container">
+        <div class="table-wrapper">
             <table id="monthlyTable">
                 <thead>
                     <tr>
@@ -417,7 +361,7 @@
             </div>
         </header>
 
-        <div class="table-container">
+        <div class="table-wrapper">
             <table id="dataTable">
                 <thead id="tableHead"></thead>
                 <tbody id="tableBody">
@@ -469,10 +413,10 @@
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         
         if(tabName === 'detailed') {
-            document.querySelectorAll('.tab-btn')[0].classList.add('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
             document.getElementById('detailedTab').classList.add('active');
         } else {
-            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            document.querySelectorAll('.tab-btn')[0].classList.add('active');
             document.getElementById('summaryTab').classList.add('active');
         }
     }
