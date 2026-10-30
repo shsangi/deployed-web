@@ -58,10 +58,7 @@
             transition: all 0.2s;
         }
 
-        .tab-btn:hover {
-            color: var(--primary);
-        }
-
+        .tab-btn:hover { color: var(--primary); }
         .tab-btn.active {
             color: var(--primary);
             border-bottom-color: var(--primary);
@@ -125,6 +122,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
             overflow-x: auto;
             border: 1px solid var(--border);
+            max-height: 75vh;
         }
 
         table {
@@ -151,25 +149,35 @@
         }
 
         /* Summary Table Specifics */
-        #summaryTable th, #summaryTable td {
-            text-align: right; /* Align numbers right */
+        #monthlyTable th, #monthlyTable td {
+            text-align: right;
         }
-        #summaryTable th:first-child, #summaryTable td:first-child,
-        #summaryTable th:nth-child(2), #summaryTable td:nth-child(2) {
-            text-align: left; /* Align text left */
+        #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1),
+        #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2),
+        #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) {
+            text-align: left;
         }
 
-        .subtotal-row {
+        .month-group-header {
+            background-color: #e0e7ff;
+            color: #3730a3;
+            font-weight: bold;
+            font-size: 1rem;
+            text-align: left !important;
+        }
+
+        .month-subtotal-row {
             background-color: #f8fafc;
             font-weight: bold;
-            font-size: 1rem !important;
-            border-top: 2px solid var(--border);
+            color: #0f172a;
+            border-bottom: 2px solid var(--primary);
         }
 
-        .subtotal-row td {
-            color: var(--primary);
-            padding-top: 1.25rem;
-            padding-bottom: 1.25rem;
+        .grand-total-row {
+            background-color: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 1.05rem;
         }
 
         /* Badge Styles */
@@ -259,7 +267,7 @@
     <!-- TAB 2: Monthly Summary -->
     <div id="summaryTab" class="tab-content">
         <header>
-            <h1>Monthly Filter & Subtotal</h1>
+            <h1>Monthly Breakdown</h1>
             <div class="controls">
                 <select id="monthFilter">
                     <option value="all">All Months</option>
@@ -269,17 +277,20 @@
         </header>
 
         <div class="table-container">
-            <table id="summaryTable">
+            <table id="monthlyTable">
                 <thead>
                     <tr>
-                        <th>Sr. No</th>
-                        <th>Month - Year</th>
-                        <th>Current Month Amount (Rs.)</th>
-                        <th>Total Amount Due (Rs.)</th>
+                        <th>Home Number</th>
+                        <th>Bill Month-Year</th>
+                        <th>Utility</th>
+                        <th>Current Due (Rs.)</th>
+                        <th>Units</th>
+                        <th>Current Amount (Rs.)</th>
+                        <th>Arrears (Rs.)</th>
                     </tr>
                 </thead>
-                <tbody id="summaryBody">
-                    <tr><td colspan="4" class="status-msg">Loading data...</td></tr>
+                <tbody id="monthlyBody">
+                    <tr><td colspan="7" class="status-msg">Loading data...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -291,8 +302,8 @@
 
     let allData = [];
     let headers = [];
+    let aggregatedMonthlyData = {};
 
-    // Initialize application
     async function init() {
         try {
             const response = await fetch(CSV_URL);
@@ -306,12 +317,10 @@
                     allData = results.data;
                     headers = results.meta.fields;
                     
-                    // Populate both tabs
                     renderHeaders();
                     renderDetailedTable(allData);
-                    buildSummaryTab();
+                    buildMonthlySummary();
                     
-                    // Setup event listeners
                     setupDetailedEvents();
                 },
                 error: function(error) {
@@ -411,104 +420,130 @@
     }
 
     // --- TAB 2: MONTHLY SUMMARY LOGIC ---
-    function buildSummaryTab() {
-        // 1. Aggregate data by Month-Year
-        const summaryData = {};
+    function buildMonthlySummary() {
+        aggregatedMonthlyData = {};
         
+        // 1. Group by Month-Year
         allData.forEach(row => {
             const monthYear = row['bill_month_year'];
             if (!monthYear) return;
 
-            // Parse amounts, default to 0 if empty/invalid
-            const currentAmount = parseFloat(row['current_month_amount']) || 0;
-            const totalDue = parseFloat(row['current_month_due']) || 0;
-
-            if (!summaryData[monthYear]) {
-                summaryData[monthYear] = {
-                    monthYear: monthYear,
-                    totalCurrent: 0,
-                    totalDue: 0
-                };
+            if (!aggregatedMonthlyData[monthYear]) {
+                aggregatedMonthlyData[monthYear] = [];
             }
-            
-            summaryData[monthYear].totalCurrent += currentAmount;
-            summaryData[monthYear].totalDue += totalDue;
+            aggregatedMonthlyData[monthYear].push(row);
         });
 
-        // Convert object to array
-        let aggregatedArray = Object.values(summaryData);
-
-        // 2. Sort Chronologically (e.g., "Oct-2026")
-        aggregatedArray.sort((a, b) => {
-            const dateA = new Date("01-" + a.monthYear.replace('-', '-'));
-            const dateB = new Date("01-" + b.monthYear.replace('-', '-'));
+        // 2. Sort Months Chronologically
+        const sortedMonths = Object.keys(aggregatedMonthlyData).sort((a, b) => {
+            // e.g., "Oct-2026"
+            const dateA = new Date("01-" + a.replace('-', '-'));
+            const dateB = new Date("01-" + b.replace('-', '-'));
             return dateA - dateB;
         });
 
-        // 3. Populate the Dropdown Filter
+        // 3. Populate Dropdown
         const monthFilter = document.getElementById('monthFilter');
         monthFilter.innerHTML = '<option value="all">All Months</option>';
-        aggregatedArray.forEach(item => {
+        sortedMonths.forEach(month => {
             const option = document.createElement('option');
-            option.value = item.monthYear;
-            option.textContent = item.monthYear;
+            option.value = month;
+            option.textContent = month;
             monthFilter.appendChild(option);
         });
 
-        // 4. Render Table
-        const renderSummaryTable = (dataToRender) => {
-            const tbody = document.getElementById('summaryBody');
+        // 4. Render Function
+        const renderMonthlyTable = (monthsToRender) => {
+            const tbody = document.getElementById('monthlyBody');
             tbody.innerHTML = '';
 
-            if (dataToRender.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="status-msg">No data found.</td></tr>';
+            if (monthsToRender.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="status-msg">No data found.</td></tr>';
                 return;
             }
 
-            let grandTotalCurrent = 0;
             let grandTotalDue = 0;
+            let grandTotalAmount = 0;
+            let grandTotalArrears = 0;
 
-            dataToRender.forEach((item, index) => {
-                const tr = document.createElement('tr');
+            monthsToRender.forEach(month => {
+                const rows = aggregatedMonthlyData[month];
                 
-                // Format currency
-                const fmtCurrent = item.totalCurrent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                const fmtDue = item.totalDue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                // Month Header Row
+                const headerTr = document.createElement('tr');
+                headerTr.innerHTML = `<td colspan="7" class="month-group-header">${month}</td>`;
+                tbody.appendChild(headerTr);
 
-                tr.innerHTML = `
-                    <td>${index + 1}</td>
-                    <td><strong>${item.monthYear}</strong></td>
-                    <td>${fmtCurrent}</td>
-                    <td>${fmtDue}</td>
+                let monthTotalDue = 0;
+                let monthTotalAmount = 0;
+                let monthTotalArrears = 0;
+
+                // Render each row
+                rows.forEach(row => {
+                    const due = parseFloat(row['current_month_due']) || 0;
+                    const amount = parseFloat(row['current_month_amount']) || 0;
+                    const arrears = parseFloat(row['arrears_previous_dues']) || 0;
+                    
+                    monthTotalDue += due;
+                    monthTotalAmount += amount;
+                    monthTotalArrears += arrears;
+
+                    const badgeClass = String(row['utility_type']).toLowerCase() === 'electric' ? 'badge-electric' : 'badge-gas';
+
+                    const tr = document.createElement('tr');
+                    tr.innerHTML = `
+                        <td>${row['home_number'] || '-'}</td>
+                        <td>${row['bill_month_year']}</td>
+                        <td><span class="badge ${badgeClass}">${row['utility_type'] || '-'}</span></td>
+                        <td>${due.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td>${row['current_month_units'] || '0'}</td>
+                        <td>${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                        <td style="color: ${arrears < 0 ? 'green' : 'inherit'}">${arrears.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+
+                // Month Subtotal Row
+                const subtotalTr = document.createElement('tr');
+                subtotalTr.className = 'month-subtotal-row';
+                subtotalTr.innerHTML = `
+                    <td colspan="3" style="text-align: left;">Subtotal for ${month}</td>
+                    <td>${monthTotalDue.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td></td>
+                    <td>${monthTotalAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td>${monthTotalArrears.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                 `;
-                tbody.appendChild(tr);
+                tbody.appendChild(subtotalTr);
 
-                grandTotalCurrent += item.totalCurrent;
-                grandTotalDue += item.totalDue;
+                // Add to Grand Totals
+                grandTotalDue += monthTotalDue;
+                grandTotalAmount += monthTotalAmount;
+                grandTotalArrears += monthTotalArrears;
             });
 
-            // Add Subtotal Row
-            const subtotalTr = document.createElement('tr');
-            subtotalTr.className = 'subtotal-row';
-            subtotalTr.innerHTML = `
-                <td colspan="2">Total Subtotal</td>
-                <td>${grandTotalCurrent.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
-                <td>${grandTotalDue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</td>
+            // Grand Total Row
+            const grandTotalTr = document.createElement('tr');
+            grandTotalTr.className = 'grand-total-row';
+            grandTotalTr.innerHTML = `
+                <td colspan="3" style="text-align: left;">GRAND TOTAL</td>
+                <td>${grandTotalDue.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                <td></td>
+                <td>${grandTotalAmount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                <td>${grandTotalArrears.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
             `;
-            tbody.appendChild(subtotalTr);
+            tbody.appendChild(grandTotalTr);
         };
 
-        // Render initial table
-        renderSummaryTable(aggregatedArray);
+        // Initial Render
+        renderMonthlyTable(sortedMonths);
 
-        // 5. Setup Filter Event
+        // Filter Event
         monthFilter.addEventListener('change', (e) => {
             const val = e.target.value;
             if (val === 'all') {
-                renderSummaryTable(aggregatedArray);
+                renderMonthlyTable(sortedMonths);
             } else {
-                const filtered = aggregatedArray.filter(item => item.monthYear === val);
-                renderSummaryTable(filtered);
+                renderMonthlyTable([val]);
             }
         });
     }
@@ -541,7 +576,7 @@
         errDiv.textContent = msg;
         errDiv.style.display = 'block';
         document.getElementById('tableBody').innerHTML = '<tr><td colspan="100%" class="status-msg" style="color:red;">Failed to load data.</td></tr>';
-        document.getElementById('summaryBody').innerHTML = '<tr><td colspan="4" class="status-msg" style="color:red;">Failed to load data.</td></tr>';
+        document.getElementById('monthlyBody').innerHTML = '<tr><td colspan="7" class="status-msg" style="color:red;">Failed to load data.</td></tr>';
     }
 
     document.addEventListener('DOMContentLoaded', init);
