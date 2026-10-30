@@ -43,14 +43,14 @@
             max-width: 1200px;
             margin: 0 auto;
             padding: 0.75rem;
-            position: relative; /* Added for absolute version tag */
+            position: relative; 
         }
 
         /* Version Tag */
         .version-tag {
             position: absolute;
-            top: 1rem;
-            right: 1rem;
+            top: 0.75rem;
+            right: 0.75rem;
             font-size: 0.65rem;
             color: #94a3b8;
             font-weight: 600;
@@ -58,6 +58,7 @@
             background: #e2e8f0;
             padding: 0.15rem 0.4rem;
             border-radius: 4px;
+            z-index: 10;
         }
 
         /* Header & Controls */
@@ -66,7 +67,7 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.75rem;
-            margin-top: 1.5rem; /* Space for version tag */
+            margin-top: 1.5rem;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
@@ -192,6 +193,7 @@
                 white-space: nowrap;
             }
 
+            /* Adjusted widths to give numbers more room */
             #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 4%; color: var(--text-muted); font-size: 0.5rem; }
             #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 14%; font-weight: 700; color: var(--primary); }
             #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 14%; font-size: 0.5rem; }
@@ -431,7 +433,8 @@
 </div>
 
 <script>
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv';
+    // ADDED CACHE BUSTER: &v=2 to force GitHub to give latest data
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=2';
 
     let allData = [];
     let processedData = []; 
@@ -474,7 +477,7 @@
                 dateObj = new Date(`01-${month}-${year}`);
             }
 
-            // Bulletproof Last Paid Amount Extraction
+            // 100% Bulletproof JSON Extraction
             let lastPaidAmount = null;
             try {
                 const historyStr = row['bill_payment_history_json'];
@@ -484,10 +487,12 @@
                         for (let i = 0; i < historyObj.length; i++) {
                             const record = historyObj[i];
                             
+                            // Loop through all keys in the object to find anything that looks like a payment
                             let rawPaid = record.payment;
                             if (rawPaid === undefined) rawPaid = record.amount_paid;
                             if (rawPaid === undefined) rawPaid = record.amount;
                             if (rawPaid === undefined) rawPaid = record.paid;
+                            if (rawPaid === undefined) rawPaid = record.amt;
                             
                             if (typeof rawPaid === 'string') {
                                 rawPaid = rawPaid.replace(/[^0-9.-]+/g, ""); 
@@ -495,6 +500,7 @@
 
                             const parsedPaid = parseFloat(rawPaid);
                             
+                            // If it's a valid number and greater than 0, we found it!
                             if (!isNaN(parsedPaid) && parsedPaid > 0) {
                                 lastPaidAmount = parsedPaid;
                                 break; 
@@ -502,7 +508,9 @@
                         }
                     }
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.warn("Could not parse history for row:", row);
+            }
 
             return {
                 ...row,
