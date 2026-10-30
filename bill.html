@@ -52,12 +52,11 @@
             justify-content: space-between;
             align-items: center;
             margin-bottom: 0.75rem;
-            margin-top: 0.5rem; /* Adjusted margin */
+            margin-top: 0.5rem;
             flex-wrap: wrap;
             gap: 0.5rem;
         }
 
-        /* Updated Title Area for Version Tag */
         .title-area {
             display: flex;
             justify-content: space-between;
@@ -200,7 +199,6 @@
                 white-space: nowrap;
             }
 
-            /* Adjusted widths to give numbers more room */
             #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 4%; color: var(--text-muted); font-size: 0.5rem; }
             #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 14%; font-weight: 700; color: var(--primary); }
             #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 14%; font-size: 0.5rem; }
@@ -381,10 +379,10 @@
 
 <div class="container">
     <header>
-        <!-- Version tag moved into the title area -->
+        <!-- Version tag integrated correctly in the title line -->
         <div class="title-area">
             <h1>Monthly Breakdown</h1>
-            <div class="version-tag">v 0.2</div>
+            <div class="version-tag">v 0.3</div>
         </div>
         
         <div class="controls">
@@ -443,8 +441,8 @@
 </div>
 
 <script>
-    // ADDED CACHE BUSTER: &v=3 to force GitHub to give latest data
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=3';
+    // Added &v=4 to force browser cache refresh
+    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&v=4';
 
     let allData = [];
     let processedData = [];
@@ -487,24 +485,22 @@
                 dateObj = new Date(`01-${month}-${year}`);
             }
 
-            // 100% Bulletproof JSON Extraction for Payment
+            // JSON Extraction for Payment History
             let lastPaidAmount = null;
             try {
                 const historyStr = row['bill_payment_history_json'];
                 if (historyStr) {
                     const historyObj = JSON.parse(historyStr);
                     if (Array.isArray(historyObj) && historyObj.length > 0) {
-                        // Grab the most recent entry (first in the array based on your screenshot)
+                        // Gets the most recent month's payment
                         const record = historyObj[0];
 
-                        // Loop through properties to find the payment amount
+                        // Loop through typical keys to find the paid amount
                         let rawPaid = record.payment;
                         if (rawPaid === undefined) rawPaid = record.amount_paid;
                         if (rawPaid === undefined) rawPaid = record.amount;
                         if (rawPaid === undefined) rawPaid = record.paid;
-                        if (rawPaid === undefined) rawPaid = record.amt;
 
-                        // Clean string and parse
                         if (typeof rawPaid === 'string') {
                             rawPaid = rawPaid.replace(/[^0-9.-]+/g, "");
                         }
