@@ -2,66 +2,76 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Utility Bills Dashboard</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
     <style>
         :root {
-            --primary: #2563eb;
-            --primary-hover: #1d4ed8;
-            --bg: #f8fafc;
+            --primary: #3b82f6; /* Modern Blue */
+            --primary-hover: #2563eb;
+            --bg: #f1f5f9;
             --card-bg: #ffffff;
-            --text-main: #1e293b;
+            --text-main: #0f172a;
             --text-muted: #64748b;
             --border: #e2e8f0;
-            --electric: #f59e0b;
-            --gas: #10b981;
+            --electric-bg: #fef3c7;
+            --electric-text: #b45309;
+            --gas-bg: #dcfce7;
+            --gas-text: #15803d;
+            --paid-bg: #d1fae5;
+            --paid-text: #047857;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
             background-color: var(--bg);
             color: var(--text-main);
-            padding: 2rem;
             line-height: 1.5;
+            overflow-x: hidden;
         }
 
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             margin: 0 auto;
+            padding: 1rem;
         }
 
         /* Tab Navigation */
         .tabs {
             display: flex;
-            gap: 1rem;
+            gap: 0.5rem;
             margin-bottom: 1.5rem;
-            border-bottom: 2px solid var(--border);
+            background: var(--card-bg);
+            padding: 0.4rem;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
         }
 
         .tab-btn {
+            flex: 1;
             background: none;
             border: none;
-            padding: 0.75rem 1.5rem;
-            font-size: 1rem;
+            padding: 0.8rem 1rem;
+            font-size: 0.95rem;
             font-weight: 600;
             color: var(--text-muted);
             cursor: pointer;
-            border-bottom: 3px solid transparent;
-            margin-bottom: -2px;
+            border-radius: 8px;
             transition: all 0.2s;
+            text-align: center;
         }
 
-        .tab-btn:hover { color: var(--primary); }
         .tab-btn.active {
-            color: var(--primary);
-            border-bottom-color: var(--primary);
+            background-color: var(--primary);
+            color: white;
+            box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
         }
 
         /* Header & Controls */
@@ -69,64 +79,62 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1rem;
             flex-wrap: wrap;
             gap: 1rem;
         }
 
         h1 {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #0f172a;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-main);
+            display: none; /* Hide on mobile to save space */
         }
 
         .controls {
             display: flex;
-            gap: 0.75rem;
+            gap: 0.5rem;
             flex-wrap: wrap;
+            width: 100%;
         }
 
         input[type="text"], select {
-            padding: 0.6rem 1rem;
+            padding: 0.75rem 1rem;
             border: 1px solid var(--border);
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 0.95rem;
             outline: none;
-            transition: border-color 0.2s;
             background: var(--card-bg);
-            min-width: 130px;
+            color: var(--text-main);
+            width: 100%;
+            transition: border-color 0.2s;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
+            background-repeat: no-repeat;
+            background-position: right 1rem top 50%;
+            background-size: 0.65rem auto;
         }
 
         input[type="text"]:focus, select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
         }
-
-        input[type="text"] { min-width: 250px; }
 
         /* Tab Content */
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-            animation: fadeIn 0.3s ease-in-out;
-        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.3s ease-in-out; }
 
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(5px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
-        /* Table Styles */
+        /* --- MODERN TABLE / CARD STYLES --- */
         .table-container {
             background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-            overflow-x: auto;
-            border: 1px solid var(--border);
-            max-height: 75vh;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
         }
 
         table {
@@ -135,104 +143,209 @@
             text-align: left;
         }
 
-        th, td {
-            padding: 1rem;
-            border-bottom: 1px solid var(--border);
-            vertical-align: top;
-            font-size: 0.9rem;
+        /* Desktop View Setup */
+        @media (min-width: 769px) {
+            .controls { width: auto; }
+            h1 { display: block; font-size: 1.5rem; }
+            input[type="text"] { width: 250px; }
+            select { width: auto; min-width: 130px; }
+            
+            th, td {
+                padding: 1rem;
+                border-bottom: 1px solid var(--border);
+                font-size: 0.9rem;
+            }
+
+            th {
+                background-color: #f8fafc;
+                font-weight: 600;
+                color: var(--text-muted);
+                white-space: nowrap;
+            }
+
+            #monthlyTable th, #monthlyTable td { text-align: right; }
+            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1),
+            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2),
+            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3),
+            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) {
+                text-align: left;
+            }
+
+            .month-group-header { background-color: #f1f5f9 !important; color: var(--primary) !important; font-size: 1rem !important; text-align: left !important; padding: 1rem !important; }
+            .month-subtotal-row { background-color: #f8fafc !important; font-weight: 700 !important; border-top: 2px solid var(--border) !important; }
+            .grand-total-row { background-color: #e2e8f0 !important; font-weight: 700 !important; color: var(--text-main) !important; }
+            .grand-total-row td { border-bottom: none !important; }
         }
 
-        th {
-            background-color: #f1f5f9;
-            font-weight: 600;
-            color: var(--text-muted);
-            white-space: nowrap;
-            position: sticky;
-            top: 0;
-            z-index: 10;
+        /* Mobile Card View (Ultra Modern) */
+        @media (max-width: 768px) {
+            table, thead, tbody, th, td, tr { display: block; }
+            thead { display: none; } /* Hide table headers on mobile */
+            
+            .table-container {
+                background: transparent;
+                box-shadow: none;
+            }
+
+            /* Hide the complex raw table on Detailed Data for mobile (Too much JSON) */
+            #detailedTab .table-container { display: none; }
+            #detailedTab::after {
+                content: "Detailed JSON view is only available on desktop screens for better readability.";
+                display: block;
+                text-align: center;
+                padding: 2rem;
+                color: var(--text-muted);
+                background: var(--card-bg);
+                border-radius: 12px;
+                border: 1px dashed var(--border);
+            }
+
+            /* Monthly Summary Card Style */
+            #monthlyTable tr {
+                background: var(--card-bg);
+                border-radius: 12px;
+                margin-bottom: 1rem;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+                border: 1px solid var(--border);
+                padding: 1rem;
+                position: relative;
+            }
+
+            #monthlyTable td {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                padding: 0.5rem 0;
+                border: none;
+                font-size: 0.9rem;
+                text-align: right;
+            }
+
+            /* Add labels before the values */
+            #monthlyTable td::before {
+                font-weight: 600;
+                color: var(--text-muted);
+                font-size: 0.85rem;
+            }
+
+            #monthlyTable td:nth-child(1)::before { content: "Sr. No"; }
+            #monthlyTable td:nth-child(2)::before { content: "Home"; }
+            #monthlyTable td:nth-child(3)::before { content: "Month"; }
+            #monthlyTable td:nth-child(4)::before { content: "Utility"; }
+            #monthlyTable td:nth-child(5)::before { content: "Current Due"; }
+            #monthlyTable td:nth-child(6)::before { content: "Units"; }
+            #monthlyTable td:nth-child(7)::before { content: "Bill Amount"; }
+            #monthlyTable td:nth-child(8)::before { content: "Arrears"; }
+            #monthlyTable td:nth-child(9)::before { content: "Last Paid"; }
+
+            /* Typography Highlights for Mobile */
+            #monthlyTable td:nth-child(2) { font-size: 1.1rem; font-weight: 700; color: var(--primary); }
+            #monthlyTable td:nth-child(7) { font-size: 1rem; font-weight: 700; color: var(--text-main); }
+
+            /* Month Header Row */
+            .month-group-header {
+                background: var(--primary) !important;
+                color: white !important;
+                border-radius: 8px;
+                padding: 0.6rem 1rem !important;
+                margin-top: 1.5rem;
+                margin-bottom: 0.75rem;
+                font-size: 0.95rem !important;
+                text-align: center !important;
+                font-weight: 600;
+                border: none;
+                box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+            }
+
+            /* Subtotal Card */
+            .month-subtotal-row {
+                background: #e2e8f0 !important;
+                border: none !important;
+                margin-bottom: 1.5rem !important;
+                padding: 0.75rem 1rem !important;
+            }
+            .month-subtotal-row td { padding: 0.25rem 0; }
+            .month-subtotal-row td:nth-child(1) { display: none; }
+            .month-subtotal-row td:nth-child(2) { display: none; }
+            .month-subtotal-row td:nth-child(3) { display: none; }
+            .month-subtotal-row td:nth-child(4) { display: none; }
+            
+            .month-subtotal-row td:nth-child(5)::before { content: "Subtotal Due"; }
+            .month-subtotal-row td:nth-child(6) { display: none; }
+            .month-subtotal-row td:nth-child(7)::before { content: "Subtotal Amount"; }
+            .month-subtotal-row td:nth-child(8)::before { content: "Subtotal Arrears"; }
+            .month-subtotal-row td:nth-child(9)::before { content: "Subtotal Paid"; }
+
+            /* Grand Total Card */
+            .grand-total-row {
+                background: var(--text-main) !important;
+                color: white !important;
+                border-radius: 12px;
+                padding: 1rem !important;
+                margin-top: 2rem;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            }
+            .grand-total-row td { padding: 0.25rem 0; color: white !important; }
+            .grand-total-row td::before { color: #cbd5e1 !important; }
+            .grand-total-row td:nth-child(1) { display: none; }
+            .grand-total-row td:nth-child(2) { display: none; }
+            .grand-total-row td:nth-child(3) { display: none; }
+            .grand-total-row td:nth-child(4) { display: none; }
+            
+            .grand-total-row td:nth-child(5)::before { content: "GRAND TOTAL DUE"; color: white !important; }
+            .grand-total-row td:nth-child(6) { display: none; }
+            .grand-total-row td:nth-child(7)::before { content: "TOTAL AMOUNT"; color: white !important; }
+            .grand-total-row td:nth-child(8)::before { content: "TOTAL ARREARS"; color: white !important; }
+            .grand-total-row td:nth-child(9)::before { content: "TOTAL PAID"; color: white !important; }
         }
 
-        /* Summary Table Specifics */
-        #monthlyTable th, #monthlyTable td {
-            text-align: right;
-        }
-        /* Left align text-based columns (Sr No, Home, Month, Utility) */
-        #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1),
-        #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2),
-        #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3),
-        #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) {
-            text-align: left;
-        }
-
-        .month-group-header {
-            background-color: #e0e7ff;
-            color: #3730a3;
-            font-weight: bold;
-            font-size: 1rem;
-            text-align: left !important;
-        }
-
-        .month-subtotal-row {
-            background-color: #f8fafc;
-            font-weight: bold;
-            color: #0f172a;
-            border-bottom: 2px solid var(--primary);
-        }
-
-        .grand-total-row {
-            background-color: var(--primary);
-            color: white;
-            font-weight: bold;
-            font-size: 1.05rem;
-        }
-
-        /* Badge Styles */
+        /* Badges (Chips) */
         .badge {
             display: inline-block;
-            padding: 0.25rem 0.75rem;
-            border-radius: 9999px;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
             font-size: 0.75rem;
-            font-weight: 600;
+            font-weight: 700;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
-        .badge-electric { background-color: #fef3c7; color: #92400e; }
-        .badge-gas { background-color: #d1fae5; color: #065f46; }
-
-        /* JSON Viewer */
-        .json-view {
-            background: #f8fafc;
-            border: 1px solid var(--border);
+        .badge-electric { background-color: var(--electric-bg); color: var(--electric-text); }
+        .badge-gas { background-color: var(--gas-bg); color: var(--gas-text); }
+        
+        .paid-chip {
+            background-color: var(--paid-bg);
+            color: var(--paid-text);
+            padding: 0.25rem 0.5rem;
             border-radius: 6px;
-            padding: 0.75rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.8rem;
-            color: #334155;
-            white-space: pre-wrap;
-            word-break: break-all;
-            max-height: 150px;
-            overflow-y: auto;
-            min-width: 200px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            display: inline-block;
         }
-
-        .json-key { color: #0f172a; font-weight: bold; }
-        .json-string { color: #059669; }
-        .json-number { color: #2563eb; }
-        .json-boolean { color: #d97706; }
-        .json-null { color: #ef4444; }
+        
+        .negative-arrears { color: #10b981; font-weight: 500; }
 
         /* Utilities */
-        .status-msg { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 1.1rem; }
+        .status-msg { text-align: center; padding: 3rem; color: var(--text-muted); font-size: 1rem; }
         .error { color: #ef4444; background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; }
-
-        @media (max-width: 768px) {
-            body { padding: 1rem; }
-            header { flex-direction: column; align-items: flex-start; }
-            .controls { width: 100%; flex-direction: column; }
-            input[type="text"], select { width: 100%; }
-            .tabs { flex-direction: column; gap: 0; }
-            .tab-btn { text-align: left; padding: 1rem; border-bottom: 1px solid var(--border); border-left: 3px solid transparent; margin-bottom: 0; }
-            .tab-btn.active { border-bottom-color: var(--border); border-left-color: var(--primary); }
+        
+        .json-view { display: none; } /* Hide JSON on mobile */
+        @media (min-width: 769px) {
+            .json-view {
+                display: block;
+                background: #f8fafc;
+                border: 1px solid var(--border);
+                border-radius: 6px;
+                padding: 0.75rem;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 0.8rem;
+                color: #334155;
+                white-space: pre-wrap;
+                word-break: break-all;
+                max-height: 150px;
+                overflow-y: auto;
+                min-width: 200px;
+            }
         }
     </style>
 </head>
@@ -240,18 +353,62 @@
 
 <div class="container">
     <div class="tabs">
-        <button class="tab-btn" onclick="switchTab('detailed')">Detailed Data</button>
-        <button class="tab-btn active" onclick="switchTab('summary')">Monthly Summary</button>
+        <button class="tab-btn active" onclick="switchTab('summary')">📊 Summary</button>
+        <button class="tab-btn" onclick="switchTab('detailed')">📄 Detailed JSON</button>
     </div>
 
     <div id="errorContainer" class="error"></div>
+
+    <!-- TAB 2: Monthly Summary (Default Active) -->
+    <div id="summaryTab" class="tab-content active">
+        <header>
+            <h1>Monthly Breakdown</h1>
+            <div class="controls">
+                <select id="filterMonth">
+                    <option value="all">All Months</option>
+                </select>
+                <select id="filterYear">
+                    <option value="all">All Years</option>
+                </select>
+                <select id="filterUtility">
+                    <option value="all">All Utilities</option>
+                    <option value="Electric">⚡ Electric</option>
+                    <option value="Gas">🔥 Gas</option>
+                </select>
+                <select id="filterHomeNo">
+                    <option value="all">All Homes</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="table-container">
+            <table id="monthlyTable">
+                <thead>
+                    <tr>
+                        <th>Sr. No</th>
+                        <th>Home No</th>
+                        <th>Bill Month</th>
+                        <th>Utility</th>
+                        <th>Current Due</th>
+                        <th>Units</th>
+                        <th>Bill Amount</th>
+                        <th>Arrears</th>
+                        <th>Last Paid</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyBody">
+                    <tr><td colspan="9" class="status-msg">Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
 
     <!-- TAB 1: Detailed Data -->
     <div id="detailedTab" class="tab-content">
         <header>
             <h1>All Bills Data</h1>
             <div class="controls">
-                <input type="text" id="searchInput" placeholder="Search by Home No, Name, etc...">
+                <input type="text" id="searchInput" placeholder="Search anything...">
                 <select id="typeFilter">
                     <option value="all">All Utilities</option>
                     <option value="Electric">Electric Only</option>
@@ -265,50 +422,6 @@
                 <thead id="tableHead"></thead>
                 <tbody id="tableBody">
                     <tr><td colspan="100%" class="status-msg">Loading data...</td></tr>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <!-- TAB 2: Monthly Summary -->
-    <div id="summaryTab" class="tab-content active">
-        <header>
-            <h1>Monthly Breakdown</h1>
-            <div class="controls">
-                <select id="filterMonth">
-                    <option value="all">All Months</option>
-                </select>
-                <select id="filterYear">
-                    <option value="all">All Years</option>
-                </select>
-                <select id="filterUtility">
-                    <option value="all">All Utilities</option>
-                    <option value="Electric">Electric</option>
-                    <option value="Gas">Gas</option>
-                </select>
-                <select id="filterHomeNo">
-                    <option value="all">All Homes</option>
-                </select>
-            </div>
-        </header>
-
-        <div class="table-container">
-            <table id="monthlyTable">
-                <thead>
-                    <tr>
-                        <th>Sr. No</th>
-                        <th>Home Number</th>
-                        <th>Bill Month-Year</th>
-                        <th>Utility</th>
-                        <th>Current Due (Rs.)</th>
-                        <th>Units</th>
-                        <th>Current Amount (Rs.)</th>
-                        <th>Arrears (Rs.)</th>
-                        <th>Last Paid Amount (Rs.)</th>
-                    </tr>
-                </thead>
-                <tbody id="monthlyBody">
-                    <tr><td colspan="9" class="status-msg">Loading data...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -460,9 +573,7 @@
                 if (historyStr) {
                     const historyObj = JSON.parse(historyStr);
                     if (Array.isArray(historyObj) && historyObj.length > 0) {
-                        // The first item in the array represents the most recent month
                         const latestRecord = historyObj[0];
-                        // Handle different naming conventions between Electric and Gas
                         lastPaidAmount = latestRecord.payment !== undefined ? latestRecord.payment : latestRecord.amount_paid;
                     }
                 }
@@ -561,7 +672,7 @@
         let grandTotalAmount = 0;
         let grandTotalArrears = 0;
         let grandTotalPaid = 0;
-        let globalRowCounter = 1; // Dynamic Serial Number Counter
+        let globalRowCounter = 1;
 
         sortedKeys.forEach(key => {
             const group = groupedData[key];
@@ -599,8 +710,8 @@
                     <td>${due.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
                     <td>${row['current_month_units'] || '0'}</td>
                     <td>${amount.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                    <td style="color: ${arrears < 0 ? 'green' : 'inherit'}">${arrears.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
-                    <td style="color: #059669; font-weight: 500;">${row._lastPaidAmount !== null && row._lastPaidAmount !== undefined ? paid.toLocaleString('en-US', {minimumFractionDigits: 2}) : '-'}</td>
+                    <td class="${arrears < 0 ? 'negative-arrears' : ''}">${arrears.toLocaleString('en-US', {minimumFractionDigits: 2})}</td>
+                    <td>${row._lastPaidAmount !== null && row._lastPaidAmount !== undefined ? `<span class="paid-chip">${paid.toLocaleString('en-US', {minimumFractionDigits: 2})}</span>` : '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
