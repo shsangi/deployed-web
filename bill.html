@@ -45,6 +45,7 @@
             padding: 0.75rem;
         }
 
+        /* Header & Controls */
         header {
             display: flex;
             justify-content: space-between;
@@ -92,6 +93,7 @@
             box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
         }
 
+        /* --- MODERN TABLE STYLES --- */
         .table-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -105,6 +107,7 @@
             text-align: left;
         }
 
+        /* --- DESKTOP VIEW --- */
         @media (min-width: 769px) {
             .container { padding: 2rem; }
             .controls { width: auto; flex-wrap: nowrap; }
@@ -132,6 +135,7 @@
                 text-align: left;
             }
 
+            /* Interactive row hover for desktop */
             #monthlyTable tbody tr:not(.month-subtotal-row):not(.grand-total-row):hover {
                 background-color: #f8fafc;
                 cursor: pointer;
@@ -141,20 +145,24 @@
             .grand-total-row { background-color: #e2e8f0 !important; font-weight: 700 !important; color: var(--text-main) !important; }
         }
 
+        /* --- MOBILE VIEW (SINGLE ROW WITH CHIPS & HEADERS) --- */
         @media (max-width: 768px) {
             #monthlyTable { table-layout: fixed; }
             
+            /* Column headers */
             #monthlyTable thead { display: table-header-group; }
             #monthlyTable th {
                 padding: 0.4rem 0.1rem;
-                font-size: 0.55rem;
+                font-size: 0.5rem;
                 text-transform: uppercase;
                 text-align: center;
                 background: #f8fafc;
                 color: var(--text-muted);
                 border-bottom: 1px solid var(--border);
-                white-space: normal;
+                white-space: nowrap; /* Prevents headers from wrapping */
                 line-height: 1.1;
+                overflow: hidden;
+                text-overflow: ellipsis;
             }
 
             #monthlyTable td {
@@ -168,21 +176,23 @@
                 white-space: nowrap;
             }
 
-            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 5%; color: var(--text-muted); font-size: 0.6rem; }
+            /* Adjust column widths for the 9 columns to fit */
+            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 5%; color: var(--text-muted); font-size: 0.55rem; }
             #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 15%; font-weight: 700; color: var(--primary); }
-            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 15%; font-size: 0.6rem; }
-            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 10%; }
-            #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 13%; }
-            #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 7%; }
+            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 15%; font-size: 0.55rem; }
+            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 8%; }
+            #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 12%; }
+            #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 6%; }
             #monthlyTable th:nth-child(7), #monthlyTable td:nth-child(7) { width: 13%; }
-            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 11%; }
-            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 11%; }
+            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 13%; } /* Increased Arrears width */
+            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 13%; } /* Increased Paid width */
 
+            /* CHIP STYLING FOR MOBILE VALUES */
             .mobile-chip {
                 display: inline-block;
                 padding: 0.15rem 0.2rem;
                 border-radius: 3px;
-                font-size: 0.6rem;
+                font-size: 0.55rem;
                 font-weight: 700;
                 max-width: 100%;
                 overflow: hidden;
@@ -198,23 +208,27 @@
             .chip-gas { background: var(--gas-bg); color: var(--gas-text); font-size: 0.5rem; padding: 0.1rem 0.2rem; }
             .negative-arrears { color: #10b981 !important; background: #ecfdf5 !important; }
 
+            /* Visual separator for new month groups */
             tr.month-start-row td {
                 border-top: 2px solid var(--primary) !important;
             }
 
+            /* Subtotal Row */
             .month-subtotal-row { background: #e2e8f0 !important; font-weight: 700 !important; }
-            .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.65rem; }
+            .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.6rem; }
             
             .month-subtotal-row td:nth-child(1) { visibility: hidden; }
             .month-subtotal-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; }
             
+            /* Grand Total Row */
             .grand-total-row { background: var(--text-main) !important; color: white !important; border-radius: 6px; margin-top: 1rem; }
-            .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.65rem; color: white !important; }
+            .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.6rem; color: white !important; }
             
             .grand-total-row td:nth-child(1) { visibility: hidden; }
             .grand-total-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; color: #cbd5e1 !important; }
         }
 
+        /* Common Badges (Desktop) */
         .badge {
             display: inline-block;
             padding: 0.2rem 0.5rem;
@@ -227,6 +241,7 @@
         .badge-electric { background-color: var(--electric-bg); color: var(--electric-text); }
         .badge-gas { background-color: var(--gas-bg); color: var(--gas-text); }
 
+        /* Utilities */
         .status-msg { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem; }
         .error { color: #ef4444; background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; font-size: 0.85rem; }
 
@@ -342,12 +357,6 @@
         .json-number { color: #fca5a5; }
         .json-boolean { color: #fcd34d; }
         .json-null { color: #f87171; }
-
-        @media (max-width: 768px) {
-            #monthlyTable tbody tr:not(.month-subtotal-row):not(.grand-total-row):active {
-                background-color: #e2e8f0;
-            }
-        }
     </style>
 </head>
 <body>
@@ -422,19 +431,14 @@
             if (!response.ok) throw new Error('Failed to fetch CSV data');
             const csvText = await response.text();
 
-            // Using PapaParse with a transform step to clean up bad CSV structural issues if any
             Papa.parse(csvText, {
                 header: true,
                 skipEmptyLines: true,
                 complete: function(results) {
                     allData = results.data;
-                    
-                    // Debugging: Check if payment json is actually being read
-                    console.log("Sample Row Data:", allData[0]);
-
                     processData();
                     setupFilters();
-                    applyFilters(); 
+                    applyFilters(); // Initial Render
                 },
                 error: function(error) {
                     showError('Error parsing CSV: ' + error.message);
@@ -459,39 +463,27 @@
                 dateObj = new Date(`01-${month}-${year}`);
             }
 
+            // IMPROVED: Loop through history to find the most recent non-zero payment
             let lastPaidAmount = null;
-            
-            // Improved logic: Try various names and ensure we parse correctly
             try {
-                // Sometimes the CSV parser puts extra quotes around JSON strings
-                let historyStr = row['bill_payment_history_json'];
-                
-                // If standard key is missing, look for shifted keys (sometimes caused by unquoted commas)
-                if (!historyStr) {
-                    const keys = Object.keys(row);
-                    const jsonKey = keys.find(k => k.includes('payment_history'));
-                    if (jsonKey) historyStr = row[jsonKey];
-                }
-
+                const historyStr = row['bill_payment_history_json'];
                 if (historyStr) {
-                    // Clean up potential double-double quotes
-                    historyStr = historyStr.replace(/""/g, '"');
                     const historyObj = JSON.parse(historyStr);
-                    
-                    if (Array.isArray(historyObj) && historyObj.length > 0) {
-                        const latestRecord = historyObj[0];
-                        
-                        // Electric uses "payment", Gas uses "amount_paid"
-                        if (latestRecord.payment !== undefined && latestRecord.payment !== null) {
-                            lastPaidAmount = parseFloat(latestRecord.payment);
-                        } else if (latestRecord.amount_paid !== undefined && latestRecord.amount_paid !== null) {
-                            lastPaidAmount = parseFloat(latestRecord.amount_paid);
+                    if (Array.isArray(historyObj)) {
+                        for (let i = 0; i < historyObj.length; i++) {
+                            const record = historyObj[i];
+                            // Check both 'payment' and 'amount_paid' keys
+                            const rawPaid = record.payment !== undefined ? record.payment : record.amount_paid;
+                            const parsedPaid = parseFloat(rawPaid);
+                            
+                            if (!isNaN(parsedPaid) && parsedPaid > 0) {
+                                lastPaidAmount = parsedPaid;
+                                break; // Stop at the first (most recent) valid payment
+                            }
                         }
                     }
                 }
-            } catch (e) {
-                console.warn("Could not parse payment history for row:", row.bill_srno, e);
-            }
+            } catch (e) {}
 
             return {
                 ...row,
@@ -572,7 +564,7 @@
                 const due = parseFloat(row['current_month_due']) || 0;
                 const amount = parseFloat(row['current_month_amount']) || 0;
                 const arrears = parseFloat(row['arrears_previous_dues']) || 0;
-                const paid = row._lastPaidAmount || 0; // Using || 0 handles NaN/Null
+                const paid = parseFloat(row._lastPaidAmount) || 0;
                 
                 monthTotalDue += due;
                 monthTotalAmount += amount;
@@ -586,13 +578,8 @@
                 const tr = document.createElement('tr');
                 if (rowIndex === 0) tr.className = 'month-start-row';
                 
-                tr.dataset.jsonRecord = JSON.stringify(row); 
+                // Add click listener to open modal
                 tr.addEventListener('click', () => openModal(row));
-
-                // Show the paid amount if it's a valid number, otherwise show a dash
-                const paidDisplay = (row._lastPaidAmount !== null && row._lastPaidAmount !== undefined && !isNaN(row._lastPaidAmount)) 
-                                    ? `<span class="mobile-chip chip-paid">${row._lastPaidAmount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>` 
-                                    : '-';
 
                 tr.innerHTML = `
                     <td>${globalRowCounter++}</td>
@@ -603,7 +590,7 @@
                     <td>${row['current_month_units'] || '0'}</td>
                     <td><span class="mobile-chip chip-amount">${amount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
                     <td><span class="mobile-chip ${arrears < 0 ? 'negative-arrears' : 'chip-arrears'}">${arrears.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
-                    <td>${paidDisplay}</td>
+                    <td>${row._lastPaidAmount !== null && row._lastPaidAmount !== undefined ? `<span class="mobile-chip chip-paid">${paid.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>` : '-'}</td>
                 `;
                 tbody.appendChild(tr);
             });
@@ -684,9 +671,7 @@
             groupDiv.className = 'detail-group';
             
             try {
-                // Clean double-double quotes just in case before parsing for display
-                const cleanedStr = field.value.replace(/""/g, '"');
-                const parsed = JSON.parse(cleanedStr);
+                const parsed = JSON.parse(field.value);
                 groupDiv.innerHTML = `
                     <div class="detail-group-title">${displayKey}</div>
                     <div style="padding: 0.5rem;">
@@ -703,15 +688,14 @@
         });
 
         modal.classList.add('active');
-        document.body.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden';
     }
 
     function closeModal(event) {
         if (event && event.target !== event.currentTarget) return;
-        
         const modal = document.getElementById('recordModal');
         modal.classList.remove('active');
-        document.body.style.overflow = ''; 
+        document.body.style.overflow = '';
     }
 
     document.addEventListener('keydown', (e) => {
