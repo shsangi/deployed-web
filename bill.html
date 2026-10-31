@@ -54,17 +54,17 @@ th{background:#f8fafc;font-weight:600;color:var(--text-muted)}
 #monthlyTable tbody tr:not(.month-subtotal-row):not(.grand-total-row):hover{background:#f8fafc}
 .month-subtotal-row{background:#f8fafc!important;font-weight:700;border-top:2px solid var(--border)}
 .grand-total-row{background:#e2e8f0!important;font-weight:700}
+tr.month-start-row td{border-top:2px solid var(--primary)!important}
 }
 
 @media(max-width:768px){
 #monthlyTable{table-layout:fixed}
-#monthlyTable th{padding:.3rem .1rem;font-size:.45rem;text-transform:uppercase;text-align:center;background:#f8fafc;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;line-height:1.1;overflow:hidden}
+#monthlyTable th{padding:.3rem .1rem;font-size:.55rem;text-transform:uppercase;text-align:center;background:#f8fafc;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;line-height:1.1;overflow:hidden}
 #monthlyTable td{padding:.5rem .1rem;border-bottom:1px solid var(--border);font-size:.6rem;text-align:center;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-#monthlyTable th:nth-child(1),#monthlyTable td:nth-child(1){width:4%;color:var(--text-muted);font-size:.5rem}
+#monthlyTable th:nth-child(1),#monthlyTable td:nth-child(1){width:4%;color:var(--text-muted);font-size:.55rem}
 #monthlyTable th:nth-child(2){width:18%}
-/* Home number: smaller font, shown in full (no cut-off) */
-#monthlyTable td:nth-child(2){width:18%;font-weight:700;color:var(--primary);font-size:.48rem;letter-spacing:-.2px;white-space:normal;word-break:break-all;overflow:visible;text-overflow:clip;line-height:1.15;padding:.5rem .05rem}
-#monthlyTable th:nth-child(3),#monthlyTable td:nth-child(3){width:13%;font-size:.5rem}
+#monthlyTable td:nth-child(2){width:18%;font-weight:700;color:var(--primary);font-size:.55rem;letter-spacing:-.2px;white-space:normal;word-break:break-all;overflow:visible;text-overflow:clip;line-height:1.15;padding:.5rem .05rem}
+#monthlyTable th:nth-child(3),#monthlyTable td:nth-child(3){width:13%;font-size:.55rem}
 #monthlyTable th:nth-child(4),#monthlyTable td:nth-child(4){width:5%}
 #monthlyTable th:nth-child(5),#monthlyTable td:nth-child(5){width:11%}
 #monthlyTable th:nth-child(6),#monthlyTable td:nth-child(6){width:6%}
@@ -74,7 +74,6 @@ th{background:#f8fafc;font-weight:600;color:var(--text-muted)}
 .mobile-chip{display:inline-block;padding:.15rem .1rem;border-radius:3px;font-size:.55rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
 .chip-electric,.chip-gas{font-size:.5rem;padding:.1rem .2rem}
 tr.month-start-row td{border-top:2px solid var(--primary)!important}
-/* Subtotal / grand total rows (label now visible incl. month-year) */
 #monthlyTable .month-subtotal-row{background:#e2e8f0!important;font-weight:700}
 #monthlyTable .grand-total-row{background:var(--text-main)!important}
 #monthlyTable .month-subtotal-row td,#monthlyTable .grand-total-row td{padding:.45rem .1rem;font-size:.55rem;color:inherit;font-weight:700;width:auto;letter-spacing:0;white-space:nowrap}
@@ -118,7 +117,7 @@ tr.month-start-row td{border-top:2px solid var(--primary)!important}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M12 11v8"/></svg>
       </a>
     </div>
-    <div class="version-tag">v 0.5</div>
+    <div class="version-tag">v 0.6</div>
   </div>
   <div class="controls">
     <select id="filterMonth"><option value="all">Month</option></select>
@@ -156,56 +155,101 @@ tr.month-start-row td{border-top:2px solid var(--primary)!important}
 const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&nocache='+Date.now();
 let allData=[],processedData=[];
 const $=id=>document.getElementById(id);
-const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+// Safe number formatter — never throws, treats NaN/undefined/null as 0
+const toNum=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
+const fmt=n=>toNum(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+
+// HTML escape for safe innerHTML injection
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+// Robust month name -> index map (supports 3-letter, full names, and numeric)
+const MONTH_MAP={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11,
+  january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
+
+function monthIndex(m){
+  if(!m)return null;
+  const k=String(m).toLowerCase().trim();
+  if(MONTH_MAP[k]!==undefined)return MONTH_MAP[k];
+  const n=parseInt(k,10);
+  if(!isNaN(n)&&n>=1&&n<=12)return n-1;
+  return null;
+}
 
 async function init(){
   try{
     const r=await fetch(CSV_URL);
-    if(!r.ok)throw new Error('Failed to fetch CSV data');
-    Papa.parse(await r.text(),{header:true,skipEmptyLines:true,
-      complete:res=>{allData=res.data;processData();setupFilters();applyFilters()},
-      error:e=>showError('Error parsing CSV: '+e.message)});
-  }catch(e){showError(e.message)}
+    if(!r.ok)throw new Error('Failed to fetch CSV data ('+r.status+')');
+    const text=await r.text();
+    Papa.parse(text,{
+      header:true,
+      skipEmptyLines:true,
+      complete:res=>{
+        if(res.errors&&res.errors.length){
+          console.warn('CSV parse warnings:',res.errors);
+        }
+        allData=res.data||[];
+        processData();
+        setupFilters();
+        applyFilters();
+      },
+      error:e=>showError('Error parsing CSV: '+(e&&e.message?e.message:e))
+    });
+  }catch(e){showError(e&&e.message?e.message:'Failed to load data')}
 }
 
 function processData(){
   processedData=allData.map(row=>{
-    const my=row['bill_month_year']||'';let month='Unknown',year='Unknown',d=new Date(0);
-    if(my.includes('-')){const p=my.split('-');month=p[0];year=p[1];d=new Date(`01-${month}-${year}`)}
+    const my=row['bill_month_year']||'';
+    let month='Unknown',year='Unknown',d=new Date(0);
+    if(my.includes('-')){
+      const p=my.split('-');
+      month=p[0];year=p[1];
+      const mi=monthIndex(month);
+      const y=parseInt(year,10);
+      if(mi!==null&&!isNaN(y))d=new Date(y,mi,1);
+    }
     let last=null;
     try{
       const hs=row['payment_history_json']||row['bill_payment_history_json'];
       if(hs){
         const h=JSON.parse(hs);
         if(Array.isArray(h)&&h.length){
-          h.sort((a,b)=>(b.mm_yy||b.month_year||'').localeCompare(a.mm_yy||a.month_year||''));
-          let raw=h[0].payment;if(raw===undefined)raw=h[0].amount_paid;if(raw===undefined)raw=h[0].amount;
+          h.sort((a,b)=>String(b.mm_yy||b.month_year||'').localeCompare(String(a.mm_yy||a.month_year||'')));
+          let raw=h[0].payment;
+          if(raw===undefined)raw=h[0].amount_paid;
+          if(raw===undefined)raw=h[0].amount;
           if(typeof raw==='string')raw=raw.replace(/[^0-9.-]+/g,'');
-          const v=parseFloat(raw);if(!isNaN(v)&&v>0)last=v;
+          const v=parseFloat(raw);
+          if(!isNaN(v)&&v>0)last=v;
         }
       }
-    }catch(e){console.warn('History parse failed',row)}
+    }catch(e){console.warn('History parse failed',row,e)}
     return{...row,_month:month,_year:year,_sortDate:d,_lastPaidAmount:last};
   });
 }
 
 function setupFilters(){
   const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-  const months=[...new Set(processedData.map(r=>r._month))].filter(m=>m!=='Unknown').sort((a,b)=>mo.indexOf(a)-mo.indexOf(b));
+  const months=[...new Set(processedData.map(r=>r._month))].filter(m=>m!=='Unknown').sort((a,b)=>{
+    const ia=monthIndex(a),ib=monthIndex(b);
+    if(ia===null&&ib===null)return 0;
+    if(ia===null)return 1;
+    if(ib===null)return -1;
+    return ia-ib;
+  });
   const years=[...new Set(processedData.map(r=>r._year))].filter(y=>y!=='Unknown').sort();
   const homes=[...new Set(processedData.map(r=>r['home_number']))].filter(h=>h).sort();
   const add=(id,arr)=>arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;$(id).appendChild(o)});
   add('filterMonth',months);add('filterYear',years);add('filterHomeNo',homes);
   ['filterMonth','filterYear','filterUtility','filterHomeNo'].forEach(id=>$(id).addEventListener('change',applyFilters));
 
-  // Score cards: tap to filter, tap active again to clear
   document.querySelectorAll('.score-card').forEach(c=>c.addEventListener('click',()=>{
     const u=c.dataset.util;
     $('filterUtility').value=(u===$('filterUtility').value)?'all':u;
     applyFilters();
   }));
 
-  // Reset everything to neutral
   $('resetBtn').addEventListener('click',()=>{
     ['filterMonth','filterYear','filterUtility','filterHomeNo'].forEach(id=>$(id).value='all');
     applyFilters();
@@ -216,7 +260,6 @@ function setupFilters(){
 function applyFilters(){
   const m=$('filterMonth').value,y=$('filterYear').value,u=$('filterUtility').value,h=$('filterHomeNo').value;
 
-  // Base set (all filters except utility) drives the score card counts
   const base=processedData.filter(r=>
     (m==='all'||r._month===m)&&(y==='all'||r._year===y)&&(h==='all'||r['home_number']===h));
   const cE=base.filter(r=>r['utility_type']==='Electric').length;
@@ -238,24 +281,24 @@ function renderTable(keys,g){
   keys.forEach(key=>{
     let mD=0,mA=0,mR=0,mP=0;
     g[key].rows.forEach((row,i)=>{
-      const due=parseFloat(row['current_month_due'])||0,amt=parseFloat(row['current_month_amount'])||0,
-            arr=parseFloat(row['arrears_previous_dues'])||0,paid=parseFloat(row._lastPaidAmount)||0;
+      const due=toNum(row['current_month_due']),amt=toNum(row['current_month_amount']),
+            arr=toNum(row['arrears_previous_dues']),paid=toNum(row._lastPaidAmount);
       mD+=due;mA+=amt;mR+=arr;mP+=paid;
       const el=String(row['utility_type']).toLowerCase()==='electric',uc=el?'chip-electric':'chip-gas';
       const tr=document.createElement('tr');
       if(i===0)tr.className='month-start-row';
       tr.addEventListener('click',()=>openModal(row));
-      tr.innerHTML=`<td>${n++}</td><td>${row['home_number']||'-'}</td><td>${row['bill_month_year']}</td>
+      tr.innerHTML=`<td>${n++}</td><td>${esc(row['home_number']||'-')}</td><td>${esc(row['bill_month_year']||'')}</td>
         <td><span class="mobile-chip ${uc}">${el?'E':'G'}</span></td>
         <td><span class="mobile-chip chip-due">${fmt(due)}</span></td>
-        <td>${row['current_month_units']||'0'}</td>
+        <td>${esc(row['current_month_units']||'0')}</td>
         <td><span class="mobile-chip chip-amount">${fmt(amt)}</span></td>
         <td><span class="mobile-chip ${arr<0?'negative-arrears':'chip-arrears'}">${fmt(arr)}</span></td>
         <td>${row._lastPaidAmount!=null?`<span class="mobile-chip chip-paid">${fmt(paid)}</span>`:'-'}</td>`;
       tb.appendChild(tr);
     });
     const st=document.createElement('tr');st.className='month-subtotal-row';
-    st.innerHTML=`<td colspan="4" class="tot-label">Subtotal · ${key}</td><td>${fmt(mD)}</td><td></td><td>${fmt(mA)}</td><td>${fmt(mR)}</td><td>${fmt(mP)}</td>`;
+    st.innerHTML=`<td colspan="4" class="tot-label">Subtotal · ${esc(key)}</td><td>${fmt(mD)}</td><td></td><td>${fmt(mA)}</td><td>${fmt(mR)}</td><td>${fmt(mP)}</td>`;
     tb.appendChild(st);
     gD+=mD;gA+=mA;gR+=mR;gP+=mP;
   });
@@ -266,22 +309,41 @@ function renderTable(keys,g){
 }
 
 function openModal(d){
-  $('modalTitle').textContent=`${d['home_number']} - ${d['utility_type']} (${d['bill_month_year']})`;
+  $('modalTitle').textContent=`${d['home_number']||'-'} - ${d['utility_type']||'-'} (${d['bill_month_year']||'-'})`;
   const body=$('modalBody');body.innerHTML='';
   const std=[],js=[];
-  for(const[k,v]of Object.entries(d)){if(k.startsWith('_'))continue;(k.endsWith('_json')&&v?js:std).push({key:k,value:v})}
+  for(const[k,v]of Object.entries(d)){
+    if(k.startsWith('_'))continue;
+    (k.endsWith('_json')&&v?js:std).push({key:k,value:v});
+  }
   const nice=k=>k.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
   if(std.length){
     const gd=document.createElement('div');gd.className='detail-group';
     gd.innerHTML='<div class="detail-group-title">Bill Information</div>';
-    std.forEach(f=>{const r=document.createElement('div');r.className='detail-row';
-      r.innerHTML=`<div class="detail-label">${nice(f.key)}</div><div class="detail-value">${f.value!==null&&f.value!==''?f.value:'-'}</div>`;gd.appendChild(r)});
+    std.forEach(f=>{
+      const r=document.createElement('div');r.className='detail-row';
+      const lbl=document.createElement('div');lbl.className='detail-label';lbl.textContent=nice(f.key);
+      const val=document.createElement('div');val.className='detail-value';
+      val.textContent=(f.value!==null&&f.value!==undefined&&f.value!=='')?String(f.value):'-';
+      r.appendChild(lbl);r.appendChild(val);gd.appendChild(r);
+    });
     body.appendChild(gd);
   }
   js.forEach(f=>{
     const gd=document.createElement('div');gd.className='detail-group';
-    try{gd.innerHTML=`<div class="detail-group-title">${nice(f.key)}</div><div style="padding:.5rem"><div class="json-modal-view">${syntaxHighlight(JSON.parse(f.value))}</div></div>`}
-    catch(e){gd.innerHTML=`<div class="detail-group-title">${nice(f.key)}</div><div class="detail-row"><div class="detail-value" style="color:red">Invalid JSON String</div></div>`}
+    const title=document.createElement('div');title.className='detail-group-title';title.textContent=nice(f.key);
+    gd.appendChild(title);
+    try{
+      const wrap=document.createElement('div');wrap.style.padding='.5rem';
+      const pre=document.createElement('div');pre.className='json-modal-view';
+      pre.innerHTML=syntaxHighlight(JSON.parse(f.value));
+      wrap.appendChild(pre);gd.appendChild(wrap);
+    }catch(e){
+      const r=document.createElement('div');r.className='detail-row';
+      const val=document.createElement('div');val.className='detail-value';val.style.color='red';
+      val.textContent='Invalid JSON String';
+      r.appendChild(val);gd.appendChild(r);
+    }
     body.appendChild(gd);
   });
   $('recordModal').classList.add('active');document.body.style.overflow='hidden';
@@ -291,7 +353,7 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
 function syntaxHighlight(j){
   if(typeof j!='string')j=JSON.stringify(j,undefined,2);
-  j=j.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  j=String(j).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   return j.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{
     let c='json-number';
     if(/^"/.test(m))c=/:$/.test(m)?'json-key':'json-string';
@@ -300,7 +362,10 @@ function syntaxHighlight(j){
     return `<span class="${c}">${m}</span>`;
   });
 }
-function showError(msg){const e=$('errorContainer');e.textContent=msg;e.style.display='block';$('monthlyBody').innerHTML='<tr><td colspan="9" class="status-msg" style="color:red">Failed to load.</td></tr>'}
+function showError(msg){
+  const e=$('errorContainer');e.textContent=msg;e.style.display='block';
+  $('monthlyBody').innerHTML='<tr><td colspan="9" class="status-msg" style="color:red">Failed to load.</td></tr>';
+}
 document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
