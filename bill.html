@@ -40,6 +40,12 @@ select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(59,130,246,.1
 table{width:100%;border-collapse:collapse;text-align:left}
 tbody tr:not(.month-subtotal-row):not(.grand-total-row){cursor:pointer}
 
+/* Sortable headers */
+th[data-sort]{cursor:pointer;user-select:none;transition:background .2s}
+th[data-sort]:hover{background:#e2e8f0!important}
+.sort-arrow{display:inline-block;margin-left:2px;font-size:.8em;opacity:0.3}
+th.sort-asc .sort-arrow, th.sort-desc .sort-arrow{opacity:1;color:var(--primary)}
+
 @media(min-width:769px){
 .container{padding:2rem}
 h1{font-size:1.5rem}
@@ -117,7 +123,7 @@ tr.month-start-row td{border-top:2px solid var(--primary)!important}
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M12 11v8"/></svg>
       </a>
     </div>
-    <div class="version-tag">v 0.6</div>
+    <div class="version-tag">v 0.8</div>
   </div>
   <div class="controls">
     <select id="filterMonth"><option value="all">Month</option></select>
@@ -138,7 +144,19 @@ tr.month-start-row td{border-top:2px solid var(--primary)!important}
 
 <div class="table-container">
 <table id="monthlyTable">
-<thead><tr><th>Sr</th><th>Home</th><th>Month</th><th>Type</th><th>Due</th><th>Units</th><th>Amount</th><th>Arrears</th><th>Paid</th></tr></thead>
+<thead>
+  <tr>
+    <th data-sort="sr">Sr <span class="sort-arrow">▼</span></th>
+    <th data-sort="home">Home <span class="sort-arrow">▼</span></th>
+    <th data-sort="month">Month <span class="sort-arrow">▼</span></th>
+    <th data-sort="type">Type <span class="sort-arrow">▼</span></th>
+    <th data-sort="due">Due <span class="sort-arrow">▼</span></th>
+    <th data-sort="units">Units <span class="sort-arrow">▼</span></th>
+    <th data-sort="amount">Amount <span class="sort-arrow">▼</span></th>
+    <th data-sort="arrears">Arrears <span class="sort-arrow">▼</span></th>
+    <th data-sort="paid">Paid <span class="sort-arrow">▼</span></th>
+  </tr>
+</thead>
 <tbody id="monthlyBody"><tr><td colspan="9" class="status-msg">Loading data...</td></tr></tbody>
 </table>
 </div>
@@ -156,14 +174,14 @@ const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaEL
 let allData=[],processedData=[];
 const $=id=>document.getElementById(id);
 
-// Safe number formatter — never throws, treats NaN/undefined/null as 0
+// Sorting State
+let currentSortCol = null;
+let sortAsc = true;
+
 const toNum=v=>{const n=parseFloat(v);return isNaN(n)?0:n;};
 const fmt=n=>toNum(n).toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
-
-// HTML escape for safe innerHTML injection
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
-// Robust month name -> index map (supports 3-letter, full names, and numeric)
 const MONTH_MAP={jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,sept:8,oct:9,nov:10,dec:11,
   january:0,february:1,march:2,april:3,june:5,july:6,august:7,september:8,october:9,november:10,december:11};
 
@@ -185,9 +203,6 @@ async function init(){
       header:true,
       skipEmptyLines:true,
       complete:res=>{
-        if(res.errors&&res.errors.length){
-          console.warn('CSV parse warnings:',res.errors);
-        }
         allData=res.data||[];
         processData();
         setupFilters();
@@ -230,7 +245,6 @@ function processData(){
 }
 
 function setupFilters(){
-  const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
   const months=[...new Set(processedData.map(r=>r._month))].filter(m=>m!=='Unknown').sort((a,b)=>{
     const ia=monthIndex(a),ib=monthIndex(b);
     if(ia===null&&ib===null)return 0;
@@ -252,8 +266,38 @@ function setupFilters(){
 
   $('resetBtn').addEventListener('click',()=>{
     ['filterMonth','filterYear','filterUtility','filterHomeNo'].forEach(id=>$(id).value='all');
+    currentSortCol = null; // Reset sort
+    updateSortUI();
     applyFilters();
     window.scrollTo({top:0,behavior:'smooth'});
+  });
+
+  // Setup Sort Clickers
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.sort;
+      if (currentSortCol === col) {
+        sortAsc = !sortAsc;
+      } else {
+        currentSortCol = col;
+        sortAsc = true;
+      }
+      updateSortUI();
+      applyFilters();
+    });
+  });
+}
+
+function updateSortUI() {
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.classList.remove('sort-asc', 'sort-desc');
+    const arrow = th.querySelector('.sort-arrow');
+    if (th.dataset.sort === currentSortCol) {
+      th.classList.add(sortAsc ? 'sort-asc' : 'sort-desc');
+      arrow.textContent = sortAsc ? '▲' : '▼';
+    } else {
+      arrow.textContent = '▼';
+    }
   });
 }
 
@@ -262,6 +306,7 @@ function applyFilters(){
 
   const base=processedData.filter(r=>
     (m==='all'||r._month===m)&&(y==='all'||r._year===y)&&(h==='all'||r['home_number']===h));
+  
   const cE=base.filter(r=>r['utility_type']==='Electric').length;
   const cG=base.filter(r=>r['utility_type']==='Gas').length;
   $('cntAll').textContent=base.length;$('cntElectric').textContent=cE;$('cntGas').textContent=cG;
@@ -270,6 +315,8 @@ function applyFilters(){
   const filtered=u==='all'?base:base.filter(r=>r['utility_type']===u);
   const g={};
   filtered.forEach(r=>{const k=r['bill_month_year'];(g[k]=g[k]||{sortDate:r._sortDate,rows:[]}).rows.push(r)});
+  
+  // RENDER with sorting
   renderTable(Object.keys(g).sort((a,b)=>g[a].sortDate-g[b].sortDate),g);
 }
 
@@ -280,7 +327,30 @@ function renderTable(keys,g){
 
   keys.forEach(key=>{
     let mD=0,mA=0,mR=0,mP=0;
-    g[key].rows.forEach((row,i)=>{
+    
+    // Sort rows within this month group
+    let rows = g[key].rows;
+    if (currentSortCol) {
+      rows.sort((a, b) => {
+        let vA, vB;
+        switch(currentSortCol) {
+          case 'sr': return 0; // Sr is static per render
+          case 'home': vA = String(a['home_number']||''); vB = String(b['home_number']||''); break;
+          case 'month': vA = a._sortDate; vB = b._sortDate; break;
+          case 'type': vA = String(a['utility_type']||''); vB = String(b['utility_type']||''); break;
+          case 'due': vA = toNum(a['current_month_due']); vB = toNum(b['current_month_due']); break;
+          case 'units': vA = toNum(a['current_month_units']); vB = toNum(b['current_month_units']); break;
+          case 'amount': vA = toNum(a['current_month_amount']); vB = toNum(b['current_month_amount']); break;
+          case 'arrears': vA = toNum(a['arrears_previous_dues']); vB = toNum(b['arrears_previous_dues']); break;
+          case 'paid': vA = toNum(a._lastPaidAmount); vB = toNum(b._lastPaidAmount); break;
+        }
+        if (vA < vB) return sortAsc ? -1 : 1;
+        if (vA > vB) return sortAsc ? 1 : -1;
+        return 0;
+      });
+    }
+
+    rows.forEach((row,i)=>{
       const due=toNum(row['current_month_due']),amt=toNum(row['current_month_amount']),
             arr=toNum(row['arrears_previous_dues']),paid=toNum(row._lastPaidAmount);
       mD+=due;mA+=amt;mR+=arr;mP+=paid;
