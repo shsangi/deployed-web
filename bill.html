@@ -1,765 +1,307 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Utility Bills Dashboard</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-    <style>
-        :root {
-            --primary: #3b82f6;
-            --primary-hover: #2563eb;
-            --bg: #f1f5f9;
-            --card-bg: #ffffff;
-            --text-main: #0f172a;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --electric-bg: #fef3c7;
-            --electric-text: #b45309;
-            --gas-bg: #dcfce7;
-            --gas-text: #15803d;
-            --paid-bg: #d1fae5;
-            --paid-text: #047857;
-            --due-bg: #fee2e2;
-            --due-text: #b91c1c;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Utility Bills Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<style>
+:root{--primary:#3b82f6;--bg:#f1f5f9;--card-bg:#fff;--text-main:#0f172a;--text-muted:#64748b;--border:#e2e8f0;--electric-bg:#fef3c7;--electric-text:#b45309;--gas-bg:#dcfce7;--gas-text:#15803d;--paid-bg:#d1fae5;--paid-text:#047857;--due-bg:#fee2e2;--due-text:#b91c1c}
+*{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--text-main);line-height:1.4;overflow-x:hidden}
+.container{max-width:1200px;margin:0 auto;padding:.75rem}
+header{margin:.5rem 0 .6rem}
+.title-area{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem;gap:.5rem}
+.title-left{display:flex;align-items:center;gap:.5rem}
+h1{font-size:1.2rem;font-weight:700}
+.version-tag{font-size:.7rem;color:#fff;font-weight:700;background:var(--primary);padding:.25rem .55rem;border-radius:6px;line-height:1;white-space:nowrap}
+.sheet-btn{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;background:#dcfce7;border:1px solid #bbf7d0;color:#15803d;text-decoration:none}
+.sheet-btn:active{transform:scale(.95)}
+.sheet-btn svg{width:20px;height:20px}
+.controls{display:flex;gap:.4rem;width:100%}
+select{padding:.5rem 1.3rem .5rem .5rem;border:1px solid var(--border);border-radius:8px;font-size:.8rem;outline:none;background:var(--card-bg);color:var(--text-main);flex:1;min-width:0;appearance:none;background-image:url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");background-repeat:no-repeat;background-position:right .5rem top 50%;background-size:.55rem auto}
+select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(59,130,246,.15)}
+.reset-btn{border:1px solid var(--border);background:var(--card-bg);color:var(--text-muted);border-radius:8px;padding:0 .6rem;font-size:.75rem;font-weight:700;cursor:pointer;white-space:nowrap}
+.reset-btn:active{background:#e2e8f0}
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-            -webkit-tap-highlight-color: transparent;
-        }
+/* Score cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.75rem}
+.score-card{background:var(--card-bg);border:2px solid transparent;border-radius:12px;padding:.55rem .4rem;text-align:center;cursor:pointer;box-shadow:0 2px 4px rgba(0,0,0,.05);transition:.15s}
+.score-card .num{font-size:1.4rem;font-weight:800;line-height:1.1}
+.score-card .lbl{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text-muted)}
+.score-card[data-util="all"] .num{color:var(--primary)}
+.score-card[data-util="Electric"] .num{color:var(--electric-text)}
+.score-card[data-util="Gas"] .num{color:var(--gas-text)}
+.score-card.active{border-color:var(--primary);background:#eff6ff}
+.score-card[data-util="Electric"].active{border-color:var(--electric-text);background:var(--electric-bg)}
+.score-card[data-util="Gas"].active{border-color:var(--gas-text);background:var(--gas-bg)}
 
-        body {
-            background-color: var(--bg);
-            color: var(--text-main);
-            line-height: 1.4;
-            overflow-x: hidden;
-        }
+.table-container{background:var(--card-bg);border-radius:12px;box-shadow:0 4px 6px -1px rgba(0,0,0,.05);overflow:hidden}
+table{width:100%;border-collapse:collapse;text-align:left}
+tbody tr:not(.month-subtotal-row):not(.grand-total-row){cursor:pointer}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0.75rem;
-            position: relative;
-        }
+@media(min-width:769px){
+.container{padding:2rem}
+h1{font-size:1.5rem}
+.controls{width:auto;max-width:600px}
+.controls select{min-width:120px;font-size:.9rem}
+.reset-btn{padding:.5rem 1rem}
+.cards{max-width:600px}
+th,td{padding:.8rem .5rem;border-bottom:1px solid var(--border);font-size:.85rem;white-space:nowrap}
+th{background:#f8fafc;font-weight:600;color:var(--text-muted)}
+#monthlyTable th,#monthlyTable td{text-align:right}
+#monthlyTable th:nth-child(-n+4),#monthlyTable td:nth-child(-n+4){text-align:left}
+#monthlyTable tbody tr:not(.month-subtotal-row):not(.grand-total-row):hover{background:#f8fafc}
+.month-subtotal-row{background:#f8fafc!important;font-weight:700;border-top:2px solid var(--border)}
+.grand-total-row{background:#e2e8f0!important;font-weight:700}
+}
 
-        /* Header & Controls */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.75rem;
-            margin-top: 0.5rem;
-            flex-wrap: wrap;
-            gap: 0.5rem;
-        }
+@media(max-width:768px){
+#monthlyTable{table-layout:fixed}
+#monthlyTable th{padding:.3rem .1rem;font-size:.45rem;text-transform:uppercase;text-align:center;background:#f8fafc;color:var(--text-muted);border-bottom:1px solid var(--border);white-space:nowrap;line-height:1.1;overflow:hidden}
+#monthlyTable td{padding:.5rem .1rem;border-bottom:1px solid var(--border);font-size:.6rem;text-align:center;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#monthlyTable th:nth-child(1),#monthlyTable td:nth-child(1){width:4%;color:var(--text-muted);font-size:.5rem}
+#monthlyTable th:nth-child(2){width:18%}
+/* Home number: smaller font, shown in full (no cut-off) */
+#monthlyTable td:nth-child(2){width:18%;font-weight:700;color:var(--primary);font-size:.48rem;letter-spacing:-.2px;white-space:normal;word-break:break-all;overflow:visible;text-overflow:clip;line-height:1.15;padding:.5rem .05rem}
+#monthlyTable th:nth-child(3),#monthlyTable td:nth-child(3){width:13%;font-size:.5rem}
+#monthlyTable th:nth-child(4),#monthlyTable td:nth-child(4){width:5%}
+#monthlyTable th:nth-child(5),#monthlyTable td:nth-child(5){width:11%}
+#monthlyTable th:nth-child(6),#monthlyTable td:nth-child(6){width:6%}
+#monthlyTable th:nth-child(7),#monthlyTable td:nth-child(7){width:12%}
+#monthlyTable th:nth-child(8),#monthlyTable td:nth-child(8){width:15%}
+#monthlyTable th:nth-child(9),#monthlyTable td:nth-child(9){width:16%}
+.mobile-chip{display:inline-block;padding:.15rem .1rem;border-radius:3px;font-size:.55rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;vertical-align:middle}
+.chip-electric,.chip-gas{font-size:.5rem;padding:.1rem .2rem}
+tr.month-start-row td{border-top:2px solid var(--primary)!important}
+/* Subtotal / grand total rows (label now visible incl. month-year) */
+#monthlyTable .month-subtotal-row{background:#e2e8f0!important;font-weight:700}
+#monthlyTable .grand-total-row{background:var(--text-main)!important}
+#monthlyTable .month-subtotal-row td,#monthlyTable .grand-total-row td{padding:.45rem .1rem;font-size:.55rem;color:inherit;font-weight:700;width:auto;letter-spacing:0;white-space:nowrap}
+#monthlyTable .grand-total-row td{color:#fff}
+#monthlyTable td.tot-label{text-align:left;padding-left:.35rem;font-size:.55rem}
+}
+.chip-due{background:var(--due-bg);color:var(--due-text)}
+.chip-amount{background:#e0e7ff;color:#3730a3}
+.chip-arrears{background:#f3f4f6;color:#4b5563}
+.chip-paid{background:var(--paid-bg);color:var(--paid-text)}
+.chip-electric{background:var(--electric-bg);color:var(--electric-text)}
+.chip-gas{background:var(--gas-bg);color:var(--gas-text)}
+.negative-arrears{color:#10b981!important;background:#ecfdf5!important}
+.status-msg{text-align:center;padding:2rem;color:var(--text-muted);font-size:.9rem}
+.error{color:#ef4444;background:#fee2e2;padding:1rem;border-radius:8px;margin-bottom:1rem;display:none;font-size:.85rem}
 
-        .title-area {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-            margin-bottom: 0.5rem;
-        }
-
-        h1 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: var(--text-main);
-            margin: 0;
-        }
-
-        .version-tag {
-            font-size: 0.7rem;
-            color: #ffffff;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            background: var(--primary);
-            padding: 0.25rem 0.55rem;
-            border-radius: 6px;
-            z-index: 999;
-            box-shadow: 0 2px 6px rgba(59, 130, 246, 0.35);
-            line-height: 1;
-            white-space: nowrap;
-        }
-
-        .controls {
-            display: flex;
-            gap: 0.4rem;
-            flex-wrap: wrap;
-            width: 100%;
-        }
-
-        select {
-            padding: 0.5rem 1.5rem 0.5rem 0.5rem;
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            font-size: 0.8rem;
-            outline: none;
-            background: var(--card-bg);
-            color: var(--text-main);
-            flex: 1;
-            min-width: 0;
-            transition: border-color 0.2s;
-            appearance: none;
-            background-image: url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%2364748b%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E");
-            background-repeat: no-repeat;
-            background-position: right 0.5rem top 50%;
-            background-size: 0.55rem auto;
-        }
-
-        select:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
-        }
-
-        /* --- MODERN TABLE STYLES --- */
-        .table-container {
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            overflow: hidden;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            text-align: left;
-        }
-
-        /* --- DESKTOP VIEW --- */
-        @media (min-width: 769px) {
-            .container { padding: 2rem; }
-            header { margin-top: 0; }
-            .title-area { margin-bottom: 1rem; }
-            .controls { width: auto; flex-wrap: nowrap; }
-            h1 { font-size: 1.5rem; }
-            .controls select { flex: none; min-width: 120px; font-size: 0.9rem; }
-
-            th, td {
-                padding: 0.8rem 0.5rem;
-                border-bottom: 1px solid var(--border);
-                font-size: 0.85rem;
-                white-space: nowrap;
-            }
-
-            th {
-                background-color: #f8fafc;
-                font-weight: 600;
-                color: var(--text-muted);
-            }
-
-            #monthlyTable th, #monthlyTable td { text-align: right; }
-            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1),
-            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2),
-            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3),
-            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) {
-                text-align: left;
-            }
-
-            #monthlyTable tbody tr:not(.month-subtotal-row):not(.grand-total-row):hover {
-                background-color: #f8fafc;
-                cursor: pointer;
-            }
-
-            .month-subtotal-row { background-color: #f8fafc !important; font-weight: 700 !important; border-top: 2px solid var(--border) !important; }
-            .grand-total-row { background-color: #e2e8f0 !important; font-weight: 700 !important; color: var(--text-main) !important; }
-        }
-
-        /* --- MOBILE VIEW (SINGLE ROW WITH CHIPS & HEADERS) --- */
-        @media (max-width: 768px) {
-            #monthlyTable { table-layout: fixed; }
-
-            #monthlyTable thead { display: table-header-group; }
-            #monthlyTable th {
-                padding: 0.3rem 0.1rem;
-                font-size: 0.45rem;
-                text-transform: uppercase;
-                text-align: center;
-                background: #f8fafc;
-                color: var(--text-muted);
-                border-bottom: 1px solid var(--border);
-                white-space: nowrap;
-                line-height: 1.1;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
-
-            #monthlyTable td {
-                padding: 0.5rem 0.1rem;
-                border-bottom: 1px solid var(--border);
-                font-size: 0.6rem;
-                text-align: center;
-                vertical-align: middle;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                white-space: nowrap;
-            }
-
-            #monthlyTable th:nth-child(1), #monthlyTable td:nth-child(1) { width: 4%; color: var(--text-muted); font-size: 0.5rem; }
-            #monthlyTable th:nth-child(2), #monthlyTable td:nth-child(2) { width: 14%; font-weight: 700; color: var(--primary); }
-            #monthlyTable th:nth-child(3), #monthlyTable td:nth-child(3) { width: 14%; font-size: 0.5rem; }
-            #monthlyTable th:nth-child(4), #monthlyTable td:nth-child(4) { width: 6%; }
-            #monthlyTable th:nth-child(5), #monthlyTable td:nth-child(5) { width: 12%; }
-            #monthlyTable th:nth-child(6), #monthlyTable td:nth-child(6) { width: 6%; }
-            #monthlyTable th:nth-child(7), #monthlyTable td:nth-child(7) { width: 13%; }
-            #monthlyTable th:nth-child(8), #monthlyTable td:nth-child(8) { width: 15%; }
-            #monthlyTable th:nth-child(9), #monthlyTable td:nth-child(9) { width: 16%; }
-
-            .mobile-chip {
-                display: inline-block;
-                padding: 0.15rem 0.1rem;
-                border-radius: 3px;
-                font-size: 0.55rem;
-                font-weight: 700;
-                max-width: 100%;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                vertical-align: middle;
-            }
-
-            .chip-due { background: var(--due-bg); color: var(--due-text); }
-            .chip-amount { background: #e0e7ff; color: #3730a3; }
-            .chip-arrears { background: #f3f4f6; color: #4b5563; }
-            .chip-paid { background: var(--paid-bg); color: var(--paid-text); }
-            .chip-electric { background: var(--electric-bg); color: var(--electric-text); font-size: 0.5rem; padding: 0.1rem 0.2rem; }
-            .chip-gas { background: var(--gas-bg); color: var(--gas-text); font-size: 0.5rem; padding: 0.1rem 0.2rem; }
-            .negative-arrears { color: #10b981 !important; background: #ecfdf5 !important; }
-
-            tr.month-start-row td {
-                border-top: 2px solid var(--primary) !important;
-            }
-
-            .month-subtotal-row { background: #e2e8f0 !important; font-weight: 700 !important; }
-            .month-subtotal-row td { padding: 0.4rem 0.1rem; font-size: 0.55rem; }
-
-            .month-subtotal-row td:nth-child(1) { visibility: hidden; }
-            .month-subtotal-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; }
-
-            .grand-total-row { background: var(--text-main) !important; color: white !important; border-radius: 6px; margin-top: 1rem; }
-            .grand-total-row td { padding: 0.5rem 0.1rem; font-size: 0.55rem; color: white !important; }
-
-            .grand-total-row td:nth-child(1) { visibility: hidden; }
-            .grand-total-row td:nth-child(2) { text-align: left; padding-left: 0.3rem; color: #cbd5e1 !important; }
-        }
-
-        .badge {
-            display: inline-block;
-            padding: 0.2rem 0.5rem;
-            border-radius: 4px;
-            font-size: 0.7rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .badge-electric { background-color: var(--electric-bg); color: var(--electric-text); }
-        .badge-gas { background-color: var(--gas-bg); color: var(--gas-text); }
-
-        .status-msg { text-align: center; padding: 2rem; color: var(--text-muted); font-size: 0.9rem; }
-        .error { color: #ef4444; background: #fee2e2; padding: 1rem; border-radius: 8px; margin-bottom: 1rem; display: none; font-size: 0.85rem; }
-
-        /* --- MODAL / POPUP STYLES --- */
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(2px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 1rem;
-            opacity: 0;
-            transition: opacity 0.2s ease;
-        }
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-        .modal-content {
-            background: var(--card-bg);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 600px;
-            max-height: 90vh;
-            overflow-y: auto;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-            position: relative;
-            transform: translateY(20px);
-            transition: transform 0.2s ease;
-            display: flex;
-            flex-direction: column;
-        }
-        .modal-overlay.active .modal-content {
-            transform: translateY(0);
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.25rem;
-            border-bottom: 1px solid var(--border);
-            background: #f8fafc;
-            border-radius: 16px 16px 0 0;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-        .modal-title {
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: var(--text-main);
-        }
-        .modal-close {
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            line-height: 1;
-            color: var(--text-muted);
-            cursor: pointer;
-            padding: 0.2rem;
-        }
-        .modal-close:hover { color: #ef4444; }
-
-        .modal-body {
-            padding: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-        }
-
-        .detail-group {
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        .detail-group-title {
-            background: #f1f5f9;
-            padding: 0.5rem 0.75rem;
-            font-weight: 600;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.6rem 0.75rem;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.85rem;
-        }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label { color: var(--text-muted); font-weight: 500; flex: 1; }
-        .detail-value { font-weight: 600; text-align: right; word-break: break-word; flex: 1; }
-
-        .json-modal-view {
-            background: #0f172a;
-            color: #e2e8f0;
-            padding: 0.75rem;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 0.75rem;
-            white-space: pre-wrap;
-            word-break: break-all;
-            border-radius: 6px;
-            max-height: 200px;
-            overflow-y: auto;
-        }
-        .json-key { color: #93c5fd; }
-        .json-string { color: #86efac; }
-        .json-number { color: #fca5a5; }
-        .json-boolean { color: #fcd34d; }
-        .json-null { color: #f87171; }
-    </style>
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(15,23,42,.6);backdrop-filter:blur(2px);z-index:1000;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.active{display:flex}
+.modal-content{background:var(--card-bg);border-radius:16px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 25px -5px rgba(0,0,0,.1)}
+.modal-header{display:flex;justify-content:space-between;align-items:center;padding:1.25rem;border-bottom:1px solid var(--border);background:#f8fafc;position:sticky;top:0}
+.modal-title{font-size:1.1rem;font-weight:700}
+.modal-close{background:none;border:none;font-size:1.5rem;line-height:1;color:var(--text-muted);cursor:pointer}
+.modal-body{padding:1.25rem;display:flex;flex-direction:column;gap:1rem}
+.detail-group{border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.detail-group-title{background:#f1f5f9;padding:.5rem .75rem;font-weight:600;font-size:.85rem;color:var(--text-muted);text-transform:uppercase}
+.detail-row{display:flex;justify-content:space-between;padding:.6rem .75rem;border-bottom:1px solid var(--border);font-size:.85rem}
+.detail-row:last-child{border-bottom:none}
+.detail-label{color:var(--text-muted);font-weight:500;flex:1}
+.detail-value{font-weight:600;text-align:right;word-break:break-word;flex:1}
+.json-modal-view{background:#0f172a;color:#e2e8f0;padding:.75rem;font-family:'Courier New',monospace;font-size:.75rem;white-space:pre-wrap;word-break:break-all;border-radius:6px;max-height:200px;overflow-y:auto}
+.json-key{color:#93c5fd}.json-string{color:#86efac}.json-number{color:#fca5a5}.json-boolean{color:#fcd34d}.json-null{color:#f87171}
+</style>
 </head>
 <body>
-
 <div class="container">
-    <header>
-        <div class="title-area">
-            <h1>Monthly Breakdown</h1>
-            <div class="version-tag">v 0.4</div>
-        </div>
-        
-        <div class="controls">
-            <select id="filterMonth">
-                <option value="all">Month</option>
-            </select>
-            <select id="filterYear">
-                <option value="all">Year</option>
-            </select>
-            <select id="filterUtility">
-                <option value="all">Utility</option>
-                <option value="Electric">Electric</option>
-                <option value="Gas">Gas</option>
-            </select>
-            <select id="filterHomeNo">
-                <option value="all">Home No</option>
-            </select>
-        </div>
-    </header>
-
-    <div id="errorContainer" class="error"></div>
-
-    <div class="table-container">
-        <table id="monthlyTable">
-            <thead>
-                <tr>
-                    <th>Sr</th>
-                    <th>Home</th>
-                    <th>Month</th>
-                    <th>Type</th>
-                    <th>Due</th>
-                    <th>Units</th>
-                    <th>Amount</th>
-                    <th>Arrears</th>
-                    <th>Paid</th>
-                </tr>
-            </thead>
-            <tbody id="monthlyBody">
-                <tr><td colspan="9" class="status-msg">Loading data...</td></tr>
-            </tbody>
-        </table>
+<header>
+  <div class="title-area">
+    <div class="title-left">
+      <h1>Monthly Breakdown</h1>
+      <a class="sheet-btn" id="sheetBtn" href="https://docs.google.com/spreadsheets/u/0/d/1piN7b7IRkivESv0qblGabKX-fc711_ejfNgmj-8_ySI/htmlview" target="_blank" rel="noopener" title="Open Google Sheet" aria-label="Open Google Sheet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8M8 17h8M12 11v8"/></svg>
+      </a>
     </div>
+    <div class="version-tag">v 0.5</div>
+  </div>
+  <div class="controls">
+    <select id="filterMonth"><option value="all">Month</option></select>
+    <select id="filterYear"><option value="all">Year</option></select>
+    <select id="filterUtility"><option value="all">Utility</option><option value="Electric">Electric</option><option value="Gas">Gas</option></select>
+    <select id="filterHomeNo"><option value="all">Home No</option></select>
+    <button class="reset-btn" id="resetBtn" title="Reset filters">↺ Reset</button>
+  </div>
+</header>
+
+<div class="cards">
+  <div class="score-card active" data-util="all"><div class="num" id="cntAll">0</div><div class="lbl">All</div></div>
+  <div class="score-card" data-util="Electric"><div class="num" id="cntElectric">0</div><div class="lbl">⚡ Electric</div></div>
+  <div class="score-card" data-util="Gas"><div class="num" id="cntGas">0</div><div class="lbl">🔥 Gas</div></div>
 </div>
 
-<!-- MODAL POPUP -->
+<div id="errorContainer" class="error"></div>
+
+<div class="table-container">
+<table id="monthlyTable">
+<thead><tr><th>Sr</th><th>Home</th><th>Month</th><th>Type</th><th>Due</th><th>Units</th><th>Amount</th><th>Arrears</th><th>Paid</th></tr></thead>
+<tbody id="monthlyBody"><tr><td colspan="9" class="status-msg">Loading data...</td></tr></tbody>
+</table>
+</div>
+</div>
+
 <div id="recordModal" class="modal-overlay" onclick="closeModal(event)">
-    <div class="modal-content" onclick="event.stopPropagation()">
-        <div class="modal-header">
-            <div class="modal-title" id="modalTitle">Bill Details</div>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        <div class="modal-body" id="modalBody">
-            <!-- Dynamically filled -->
-        </div>
-    </div>
+  <div class="modal-content" onclick="event.stopPropagation()">
+    <div class="modal-header"><div class="modal-title" id="modalTitle">Bill Details</div><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
 </div>
 
 <script>
-    // Force cache busting with timestamp
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&nocache=' + new Date().getTime();
+const CSV_URL='https://docs.google.com/spreadsheets/d/e/2PACX-1vTIaZO5G4scjILaELvE-NukUlA1OyyjTFCfwTVQONMBuHx2yJMe2YitJcvQgD9J-f7QtU6qwdyGL_sN/pub?output=csv&nocache='+Date.now();
+let allData=[],processedData=[];
+const $=id=>document.getElementById(id);
+const fmt=n=>n.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
 
-    let allData = [];
-    let processedData = [];
+async function init(){
+  try{
+    const r=await fetch(CSV_URL);
+    if(!r.ok)throw new Error('Failed to fetch CSV data');
+    Papa.parse(await r.text(),{header:true,skipEmptyLines:true,
+      complete:res=>{allData=res.data;processData();setupFilters();applyFilters()},
+      error:e=>showError('Error parsing CSV: '+e.message)});
+  }catch(e){showError(e.message)}
+}
 
-    async function init() {
-        try {
-            const response = await fetch(CSV_URL);
-            if (!response.ok) throw new Error('Failed to fetch CSV data');
-            const csvText = await response.text();
-
-            Papa.parse(csvText, {
-                header: true,
-                skipEmptyLines: true,
-                complete: function(results) {
-                    allData = results.data;
-                    processData();
-                    setupFilters();
-                    applyFilters(); // Initial Render
-                },
-                error: function(error) {
-                    showError('Error parsing CSV: ' + error.message);
-                }
-            });
-        } catch (error) {
-            showError(error.message);
+function processData(){
+  processedData=allData.map(row=>{
+    const my=row['bill_month_year']||'';let month='Unknown',year='Unknown',d=new Date(0);
+    if(my.includes('-')){const p=my.split('-');month=p[0];year=p[1];d=new Date(`01-${month}-${year}`)}
+    let last=null;
+    try{
+      const hs=row['payment_history_json']||row['bill_payment_history_json'];
+      if(hs){
+        const h=JSON.parse(hs);
+        if(Array.isArray(h)&&h.length){
+          h.sort((a,b)=>(b.mm_yy||b.month_year||'').localeCompare(a.mm_yy||a.month_year||''));
+          let raw=h[0].payment;if(raw===undefined)raw=h[0].amount_paid;if(raw===undefined)raw=h[0].amount;
+          if(typeof raw==='string')raw=raw.replace(/[^0-9.-]+/g,'');
+          const v=parseFloat(raw);if(!isNaN(v)&&v>0)last=v;
         }
-    }
+      }
+    }catch(e){console.warn('History parse failed',row)}
+    return{...row,_month:month,_year:year,_sortDate:d,_lastPaidAmount:last};
+  });
+}
 
-    function processData() {
-        processedData = allData.map(row => {
-            const monthYearStr = row['bill_month_year'] || '';
-            let month = 'Unknown';
-            let year = 'Unknown';
-            let dateObj = new Date(0);
+function setupFilters(){
+  const mo=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const months=[...new Set(processedData.map(r=>r._month))].filter(m=>m!=='Unknown').sort((a,b)=>mo.indexOf(a)-mo.indexOf(b));
+  const years=[...new Set(processedData.map(r=>r._year))].filter(y=>y!=='Unknown').sort();
+  const homes=[...new Set(processedData.map(r=>r['home_number']))].filter(h=>h).sort();
+  const add=(id,arr)=>arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;$(id).appendChild(o)});
+  add('filterMonth',months);add('filterYear',years);add('filterHomeNo',homes);
+  ['filterMonth','filterYear','filterUtility','filterHomeNo'].forEach(id=>$(id).addEventListener('change',applyFilters));
 
-            if (monthYearStr && monthYearStr.includes('-')) {
-                const parts = monthYearStr.split('-');
-                month = parts[0];
-                year = parts[1];
-                dateObj = new Date(`01-${month}-${year}`);
-            }
+  // Score cards: tap to filter, tap active again to clear
+  document.querySelectorAll('.score-card').forEach(c=>c.addEventListener('click',()=>{
+    const u=c.dataset.util;
+    $('filterUtility').value=(u===$('filterUtility').value)?'all':u;
+    applyFilters();
+  }));
 
-            // --- FIXED JSON EXTRACTION ---
-            let lastPaidAmount = null;
-            try {
-                const historyStr = row['payment_history_json'] || row['bill_payment_history_json'];
-                if (historyStr) {
-                    const historyObj = JSON.parse(historyStr);
-                    if (Array.isArray(historyObj) && historyObj.length > 0) {
-                        // Sort descending by date (e.g., "09/26" > "08/26")
-                        historyObj.sort((a, b) => {
-                            const dateA = a.mm_yy || a.month_year || '';
-                            const dateB = b.mm_yy || b.month_year || '';
-                            return dateB.localeCompare(dateA);
-                        });
+  // Reset everything to neutral
+  $('resetBtn').addEventListener('click',()=>{
+    ['filterMonth','filterYear','filterUtility','filterHomeNo'].forEach(id=>$(id).value='all');
+    applyFilters();
+    window.scrollTo({top:0,behavior:'smooth'});
+  });
+}
 
-                        // Grab the most recent record
-                        const latestRecord = historyObj[0];
-                        
-                        // Extract the payment value (handles various naming conventions)
-                        let rawPaid = latestRecord.payment;
-                        if (rawPaid === undefined) rawPaid = latestRecord.amount_paid;
-                        if (rawPaid === undefined) rawPaid = latestRecord.amount;
+function applyFilters(){
+  const m=$('filterMonth').value,y=$('filterYear').value,u=$('filterUtility').value,h=$('filterHomeNo').value;
 
-                        if (typeof rawPaid === 'string') {
-                            rawPaid = rawPaid.replace(/[^0-9.-]+/g, "");
-                        }
-                        
-                        const parsedPaid = parseFloat(rawPaid);
+  // Base set (all filters except utility) drives the score card counts
+  const base=processedData.filter(r=>
+    (m==='all'||r._month===m)&&(y==='all'||r._year===y)&&(h==='all'||r['home_number']===h));
+  const cE=base.filter(r=>r['utility_type']==='Electric').length;
+  const cG=base.filter(r=>r['utility_type']==='Gas').length;
+  $('cntAll').textContent=base.length;$('cntElectric').textContent=cE;$('cntGas').textContent=cG;
+  document.querySelectorAll('.score-card').forEach(c=>c.classList.toggle('active',c.dataset.util===u));
 
-                        // Only assign if it's a valid positive number
-                        if (!isNaN(parsedPaid) && parsedPaid > 0) {
-                            lastPaidAmount = parsedPaid;
-                        }
-                    }
-                }
-            } catch (e) {
-                console.warn("Could not parse history for row:", row);
-            }
+  const filtered=u==='all'?base:base.filter(r=>r['utility_type']===u);
+  const g={};
+  filtered.forEach(r=>{const k=r['bill_month_year'];(g[k]=g[k]||{sortDate:r._sortDate,rows:[]}).rows.push(r)});
+  renderTable(Object.keys(g).sort((a,b)=>g[a].sortDate-g[b].sortDate),g);
+}
 
-            return {
-                ...row,
-                _month: month,
-                _year: year,
-                _sortDate: dateObj,
-                _lastPaidAmount: lastPaidAmount
-            };
-        });
-    }
+function renderTable(keys,g){
+  const tb=$('monthlyBody');tb.innerHTML='';
+  if(!keys.length){tb.innerHTML='<tr><td colspan="9" class="status-msg">No records found.</td></tr>';return}
+  let gD=0,gA=0,gR=0,gP=0,n=1;
 
-    function setupFilters() {
-        const filterMonth = document.getElementById('filterMonth');
-        const filterYear = document.getElementById('filterYear');
-        const filterUtility = document.getElementById('filterUtility');
-        const filterHomeNo = document.getElementById('filterHomeNo');
-
-        const months = [...new Set(processedData.map(r => r._month))].filter(m => m !== 'Unknown');
-        const years = [...new Set(processedData.map(r => r._year))].filter(y => y !== 'Unknown');
-        const homes = [...new Set(processedData.map(r => r['home_number']))].filter(h => h);
-
-        const monthOrder = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-        months.sort((a, b) => monthOrder.indexOf(a) - monthOrder.indexOf(b));
-        years.sort();
-        homes.sort();
-
-        months.forEach(m => { const opt = document.createElement('option'); opt.value = m; opt.textContent = m; filterMonth.appendChild(opt); });
-        years.forEach(y => { const opt = document.createElement('option'); opt.value = y; opt.textContent = y; filterYear.appendChild(opt); });
-        homes.forEach(h => { const opt = document.createElement('option'); opt.value = h; opt.textContent = h; filterHomeNo.appendChild(opt); });
-
-        [filterMonth, filterYear, filterUtility, filterHomeNo].forEach(el => el.addEventListener('change', applyFilters));
-    }
-
-    function applyFilters() {
-        const valMonth = document.getElementById('filterMonth').value;
-        const valYear = document.getElementById('filterYear').value;
-        const valUtility = document.getElementById('filterUtility').value;
-        const valHome = document.getElementById('filterHomeNo').value;
-
-        const filtered = processedData.filter(row => {
-            if (valMonth !== 'all' && row._month !== valMonth) return false;
-            if (valYear !== 'all' && row._year !== valYear) return false;
-            if (valUtility !== 'all' && row['utility_type'] !== valUtility) return false;
-            if (valHome !== 'all' && row['home_number'] !== valHome) return false;
-            return true;
-        });
-
-        const groupedData = {};
-        filtered.forEach(row => {
-            const key = row['bill_month_year'];
-            if (!groupedData[key]) groupedData[key] = { sortDate: row._sortDate, rows: [] };
-            groupedData[key].rows.push(row);
-        });
-
-        const sortedKeys = Object.keys(groupedData).sort((a, b) => groupedData[a].sortDate - groupedData[b].sortDate);
-        renderTable(sortedKeys, groupedData);
-    }
-
-    function renderTable(sortedKeys, groupedData) {
-        const tbody = document.getElementById('monthlyBody');
-        tbody.innerHTML = '';
-
-        if (sortedKeys.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="9" class="status-msg">No records found.</td></tr>';
-            return;
-        }
-
-        let grandTotalDue = 0, grandTotalAmount = 0, grandTotalArrears = 0, grandTotalPaid = 0;
-        let globalRowCounter = 1;
-
-        sortedKeys.forEach((key) => {
-            const group = groupedData[key];
-            const rows = group.rows;
-
-            let monthTotalDue = 0, monthTotalAmount = 0, monthTotalArrears = 0, monthTotalPaid = 0;
-
-            rows.forEach((row, rowIndex) => {
-                const due = parseFloat(row['current_month_due']) || 0;
-                const amount = parseFloat(row['current_month_amount']) || 0;
-                const arrears = parseFloat(row['arrears_previous_dues']) || 0;
-                const paid = parseFloat(row._lastPaidAmount) || 0;
-
-                monthTotalDue += due;
-                monthTotalAmount += amount;
-                monthTotalArrears += arrears;
-                monthTotalPaid += paid;
-
-                const isElectric = String(row['utility_type']).toLowerCase() === 'electric';
-                const badgeClass = isElectric ? 'badge-electric' : 'badge-gas';
-                const chipUtilClass = isElectric ? 'chip-electric' : 'chip-gas';
-
-                const tr = document.createElement('tr');
-                if (rowIndex === 0) tr.className = 'month-start-row';
-
-                tr.addEventListener('click', () => openModal(row));
-
-                tr.innerHTML = `
-                    <td>${globalRowCounter++}</td>
-                    <td>${row['home_number'] || '-'}</td>
-                    <td>${row['bill_month_year']}</td>
-                    <td><span class="badge ${badgeClass} ${chipUtilClass}" style="display:none;"></span><span class="mobile-chip ${chipUtilClass}">${isElectric ? 'E' : 'G'}</span></td>
-                    <td><span class="mobile-chip chip-due">${due.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
-                    <td>${row['current_month_units'] || '0'}</td>
-                    <td><span class="mobile-chip chip-amount">${amount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
-                    <td><span class="mobile-chip ${arrears < 0 ? 'negative-arrears' : 'chip-arrears'}">${arrears.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span></td>
-                    <td>${row._lastPaidAmount !== null && row._lastPaidAmount !== undefined ? `<span class="mobile-chip chip-paid">${paid.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</span>` : '-'}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-
-            const subtotalTr = document.createElement('tr');
-            subtotalTr.className = 'month-subtotal-row';
-            subtotalTr.innerHTML = `
-                <td colspan="4" style="text-align: left;">Subtotal</td>
-                <td>${monthTotalDue.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-                <td></td>
-                <td>${monthTotalAmount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-                <td>${monthTotalArrears.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-                <td>${monthTotalPaid.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-            `;
-            tbody.appendChild(subtotalTr);
-
-            grandTotalDue += monthTotalDue; grandTotalAmount += monthTotalAmount; grandTotalArrears += monthTotalArrears; grandTotalPaid += monthTotalPaid;
-        });
-
-        const grandTotalTr = document.createElement('tr');
-        grandTotalTr.className = 'grand-total-row';
-        grandTotalTr.innerHTML = `
-            <td colspan="4" style="text-align: left;">GRAND TOTAL</td>
-            <td>${grandTotalDue.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-            <td></td>
-            <td>${grandTotalAmount.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-            <td>${grandTotalArrears.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-            <td>${grandTotalPaid.toLocaleString('en-US', {minimumFractionDigits: 0, maximumFractionDigits: 0})}</td>
-        `;
-        tbody.appendChild(grandTotalTr);
-    }
-
-    // --- MODAL LOGIC ---
-    function openModal(rowData) {
-        const modal = document.getElementById('recordModal');
-        const title = document.getElementById('modalTitle');
-        const body = document.getElementById('modalBody');
-
-        title.textContent = `${rowData['home_number']} - ${rowData['utility_type']} (${rowData['bill_month_year']})`;
-        body.innerHTML = '';
-
-        const standardFields = [];
-        const jsonFields = [];
-
-        for (const [key, value] of Object.entries(rowData)) {
-            if (key.startsWith('_')) continue;
-
-            if (key.endsWith('_json') && value) {
-                jsonFields.push({key, value});
-            } else {
-                standardFields.push({key, value});
-            }
-        }
-
-        if (standardFields.length > 0) {
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'detail-group';
-            groupDiv.innerHTML = `<div class="detail-group-title">Bill Information</div>`;
-
-            standardFields.forEach(field => {
-                const displayKey = field.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-                const displayVal = field.value !== null && field.value !== '' ? field.value : '-';
-
-                const rowDiv = document.createElement('div');
-                rowDiv.className = 'detail-row';
-                rowDiv.innerHTML = `
-                    <div class="detail-label">${displayKey}</div>
-                    <div class="detail-value">${displayVal}</div>
-                `;
-                groupDiv.appendChild(rowDiv);
-            });
-            body.appendChild(groupDiv);
-        }
-
-        jsonFields.forEach(field => {
-            const displayKey = field.key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
-            const groupDiv = document.createElement('div');
-            groupDiv.className = 'detail-group';
-
-            try {
-                const parsed = JSON.parse(field.value);
-                groupDiv.innerHTML = `
-                    <div class="detail-group-title">${displayKey}</div>
-                    <div style="padding: 0.5rem;">
-                        <div class="json-modal-view">${syntaxHighlight(parsed)}</div>
-                    </div>
-                `;
-            } catch (e) {
-                groupDiv.innerHTML = `
-                    <div class="detail-group-title">${displayKey}</div>
-                    <div class="detail-row"><div class="detail-value" style="color:red;">Invalid JSON String</div></div>
-                `;
-            }
-            body.appendChild(groupDiv);
-        });
-
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeModal(event) {
-        if (event && event.target !== event.currentTarget) return;
-        const modal = document.getElementById('recordModal');
-        modal.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') closeModal();
+  keys.forEach(key=>{
+    let mD=0,mA=0,mR=0,mP=0;
+    g[key].rows.forEach((row,i)=>{
+      const due=parseFloat(row['current_month_due'])||0,amt=parseFloat(row['current_month_amount'])||0,
+            arr=parseFloat(row['arrears_previous_dues'])||0,paid=parseFloat(row._lastPaidAmount)||0;
+      mD+=due;mA+=amt;mR+=arr;mP+=paid;
+      const el=String(row['utility_type']).toLowerCase()==='electric',uc=el?'chip-electric':'chip-gas';
+      const tr=document.createElement('tr');
+      if(i===0)tr.className='month-start-row';
+      tr.addEventListener('click',()=>openModal(row));
+      tr.innerHTML=`<td>${n++}</td><td>${row['home_number']||'-'}</td><td>${row['bill_month_year']}</td>
+        <td><span class="mobile-chip ${uc}">${el?'E':'G'}</span></td>
+        <td><span class="mobile-chip chip-due">${fmt(due)}</span></td>
+        <td>${row['current_month_units']||'0'}</td>
+        <td><span class="mobile-chip chip-amount">${fmt(amt)}</span></td>
+        <td><span class="mobile-chip ${arr<0?'negative-arrears':'chip-arrears'}">${fmt(arr)}</span></td>
+        <td>${row._lastPaidAmount!=null?`<span class="mobile-chip chip-paid">${fmt(paid)}</span>`:'-'}</td>`;
+      tb.appendChild(tr);
     });
+    const st=document.createElement('tr');st.className='month-subtotal-row';
+    st.innerHTML=`<td colspan="4" class="tot-label">Subtotal · ${key}</td><td>${fmt(mD)}</td><td></td><td>${fmt(mA)}</td><td>${fmt(mR)}</td><td>${fmt(mP)}</td>`;
+    tb.appendChild(st);
+    gD+=mD;gA+=mA;gR+=mR;gP+=mP;
+  });
 
-    function syntaxHighlight(json) {
-        if (typeof json != 'string') json = JSON.stringify(json, undefined, 2);
-        json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-            var cls = 'json-number';
-            if (/^"/.test(match)) {
-                if (/:$/.test(match)) cls = 'json-key';
-                else cls = 'json-string';
-            } else if (/true|false/.test(match)) cls = 'json-boolean';
-            else if (/null/.test(match)) cls = 'json-null';
-            return '<span class="' + cls + '">' + match + '</span>';
-        });
-    }
+  const gt=document.createElement('tr');gt.className='grand-total-row';
+  gt.innerHTML=`<td colspan="4" class="tot-label">GRAND TOTAL</td><td>${fmt(gD)}</td><td></td><td>${fmt(gA)}</td><td>${fmt(gR)}</td><td>${fmt(gP)}</td>`;
+  tb.appendChild(gt);
+}
 
-    function showError(msg) {
-        const errDiv = document.getElementById('errorContainer');
-        errDiv.textContent = msg; errDiv.style.display = 'block';
-        document.getElementById('monthlyBody').innerHTML = '<tr><td colspan="9" class="status-msg" style="color:red;">Failed to load.</td></tr>';
-    }
+function openModal(d){
+  $('modalTitle').textContent=`${d['home_number']} - ${d['utility_type']} (${d['bill_month_year']})`;
+  const body=$('modalBody');body.innerHTML='';
+  const std=[],js=[];
+  for(const[k,v]of Object.entries(d)){if(k.startsWith('_'))continue;(k.endsWith('_json')&&v?js:std).push({key:k,value:v})}
+  const nice=k=>k.replace(/_/g,' ').replace(/\b\w/g,l=>l.toUpperCase());
+  if(std.length){
+    const gd=document.createElement('div');gd.className='detail-group';
+    gd.innerHTML='<div class="detail-group-title">Bill Information</div>';
+    std.forEach(f=>{const r=document.createElement('div');r.className='detail-row';
+      r.innerHTML=`<div class="detail-label">${nice(f.key)}</div><div class="detail-value">${f.value!==null&&f.value!==''?f.value:'-'}</div>`;gd.appendChild(r)});
+    body.appendChild(gd);
+  }
+  js.forEach(f=>{
+    const gd=document.createElement('div');gd.className='detail-group';
+    try{gd.innerHTML=`<div class="detail-group-title">${nice(f.key)}</div><div style="padding:.5rem"><div class="json-modal-view">${syntaxHighlight(JSON.parse(f.value))}</div></div>`}
+    catch(e){gd.innerHTML=`<div class="detail-group-title">${nice(f.key)}</div><div class="detail-row"><div class="detail-value" style="color:red">Invalid JSON String</div></div>`}
+    body.appendChild(gd);
+  });
+  $('recordModal').classList.add('active');document.body.style.overflow='hidden';
+}
+function closeModal(e){if(e&&e.target!==e.currentTarget)return;$('recordModal').classList.remove('active');document.body.style.overflow=''}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModal()});
 
-    document.addEventListener('DOMContentLoaded', init);
+function syntaxHighlight(j){
+  if(typeof j!='string')j=JSON.stringify(j,undefined,2);
+  j=j.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return j.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g,m=>{
+    let c='json-number';
+    if(/^"/.test(m))c=/:$/.test(m)?'json-key':'json-string';
+    else if(/true|false/.test(m))c='json-boolean';
+    else if(/null/.test(m))c='json-null';
+    return `<span class="${c}">${m}</span>`;
+  });
+}
+function showError(msg){const e=$('errorContainer');e.textContent=msg;e.style.display='block';$('monthlyBody').innerHTML='<tr><td colspan="9" class="status-msg" style="color:red">Failed to load.</td></tr>'}
+document.addEventListener('DOMContentLoaded',init);
 </script>
-
 </body>
 </html>
