@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Personal Life</title>
+<style>
+:root{--o:#E85D26;--bg:#F4F5F7;--txt:#1A1A1A;--gry:#666;--rad:12px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#2c2c2c;color:var(--txt);height:100vh;display:flex;justify-content:center;align-items:center;overflow:hidden}
+.kit{width:95%;max-width:1100px;height:92vh;background:var(--bg);border-radius:var(--rad);box-shadow:0 10px 30px rgba(0,0,0,.15);padding:20px;display:flex;flex-direction:column;gap:15px;position:relative;overflow:hidden}
+.hd{display:flex;align-items:center;gap:10px}
+.logo{width:32px;height:32px;background:var(--o);border-radius:50%;display:flex;justify-content:center;align-items:center;color:#fff;font-weight:bold;font-size:16px}
+h1{font-size:20px}
+.grid{display:grid;grid-template-columns:1.2fr 1fr 1.1fr;gap:15px;flex:1;min-height:0}
+.sect{font-size:13px;font-weight:700;color:var(--o);margin-bottom:8px;text-transform:uppercase;border-bottom:1px solid #ddd;padding-bottom:4px}
+.pnl{background:#fff;border-radius:8px;padding:12px;box-shadow:0 2px 8px rgba(0,0,0,.04);display:flex;flex-direction:column}
+.col1,.col2,.col3{display:flex;flex-direction:column;gap:12px}
+.prof{display:flex;gap:12px;align-items:center;background:#fff;padding:10px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.prof img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid var(--o)}
+.prof h2{font-size:16px;line-height:1.1;text-transform:uppercase}.prof h2 span{color:var(--o)}.prof p{font-size:10px;color:var(--gry);font-weight:bold}
+.stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.sbox{background:#fff;padding:8px;border-radius:6px;text-align:center;box-shadow:0 2px 5px rgba(0,0,0,.03);border-top:3px solid var(--o)}
+.sbox b{font-size:16px;display:block}.sbox span{font-size:9px;color:var(--gry);text-transform:uppercase}
+
+.stages{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:8px;flex:1}
+.card{position:relative;border-radius:6px;overflow:hidden;cursor:pointer;transition:.2s}
+.card:hover{transform:scale(1.02)}.card img{width:100%;height:100%;object-fit:cover}
+.ov{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,.85));color:#fff;padding:15px 8px 6px;pointer-events:none}
+.ov h4{font-size:11px;margin-bottom:2px}.ov p{font-size:8px;opacity:.9}
+.card.all-card{grid-column: span 2; background:var(--o); display:flex; justify-content:center; align-items:center;}
+.card.all-card h4{font-size:14px; margin-bottom:0;} .card.all-card p{font-size:10px;}
+
+.mems{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mem{background:#fff;border-radius:6px;overflow:hidden;box-shadow:0 2px 5px rgba(0,0,0,.04);display:flex;flex-direction:column}
+.mem img{width:100%;height:55px;object-fit:cover}.mem-content{padding:6px;flex:1;display:flex;flex-direction:column}
+.mem h4{font-size:10px;line-height:1.1}.mem span{font-size:8px;color:var(--o);font-weight:bold;display:block;margin:2px 0}.mem p{font-size:8px;color:var(--gry);flex:1}
+table{width:100%;border-collapse:collapse;font-size:10px}
+th{text-align:left;padding:5px;background:#f0f0f0;color:var(--gry);font-weight:600}
+td{padding:6px 5px;border-bottom:1px solid #eee}tr:last-child td{border:none}
+.bdg{background:var(--o);color:#fff;padding:2px 4px;border-radius:3px;font-size:8px;font-weight:bold}
+.bar{margin-bottom:8px}.bhd{display:flex;justify-content:space-between;font-size:10px;font-weight:600;margin-bottom:3px}
+.pbg{width:100%;height:6px;background:#ddd;border-radius:3px;overflow:hidden}.pfl{height:100%;background:var(--o);border-radius:3px}
+
+/* MODAL */
+.modal{position:absolute;inset:0;background:rgba(0,0,0,.7);z-index:300;display:none;justify-content:center;align-items:center;backdrop-filter:blur(4px);border-radius:var(--rad)}
+.modal.on{display:flex}
+.modal-box{background:#fff;padding:20px;border-radius:12px;width:85%;max-width:380px;box-shadow:0 10px 30px rgba(0,0,0,.3)}
+.modal-box h3{font-size:16px;margin-bottom:5px;color:var(--txt)}
+.modal-box p{font-size:11px;color:var(--gry);margin-bottom:15px}
+.cat-list{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:15px}
+.cat-btn{background:#f0f0f0;border:1px solid #ddd;padding:6px 12px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;color:var(--txt);transition:.2s}
+.cat-btn:hover,.cat-btn.sel{background:var(--o);color:#fff;border-color:var(--o)}
+.custom-input{width:100%;padding:8px;border:1px solid #ddd;border-radius:6px;font-size:12px;margin-bottom:15px;outline:none}
+.custom-input:focus{border-color:var(--o)}
+.modal-actions{display:flex;gap:10px;justify-content:flex-end}
+.modal-btn{padding:8px 16px;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600}
+.btn-cancel{background:#eee;color:var(--txt)}.btn-save{background:var(--o);color:#fff}
+
+/* OVERLAY */
+.ovl{position:absolute;inset:0;background:#000;z-index:100;display:none;flex-direction:column;border-radius:var(--rad);overflow:hidden}
+.ovl.on{display:flex}
+.ovl-hd{position:absolute;top:0;width:100%;z-index:20;background:linear-gradient(rgba(0,0,0,.95),transparent);padding:15px 20px 25px;transition:opacity .5s}
+.ovl-hd.hide{opacity:0;pointer-events:none}
+.ovl-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.ovl-top h2{font-size:18px;color:#fff}.cls{background:rgba(255,255,255,.2);border:none;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;backdrop-filter:blur(5px)}
+.tabs{display:flex;gap:10px;overflow-x:auto;scrollbar-width:none;margin-bottom:12px}.tabs::-webkit-scrollbar{display:none}
+.fbtn{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 14px;border-radius:20px;cursor:pointer;font-size:11px;font-weight:600;white-space:nowrap}
+.fbtn.on{background:var(--o);border-color:var(--o)}
+
+/* NEW: Date Filters */
+.date-filters{display:flex;gap:10px;}
+.date-select{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;padding:6px 10px;border-radius:6px;font-size:11px;outline:none;cursor:pointer;flex:1}
+.date-select option{background:#222;color:#fff;}
+
+.feed{width:100%;height:100%;overflow-y:scroll;scroll-snap-type:y mandatory;scrollbar-width:none}.feed::-webkit-scrollbar{display:none}
+.item{width:100%;height:100%;scroll-snap-align:start;position:relative;display:flex;justify-content:center;align-items:center;background:#000}
+.item img,.item video{width:100%;height:100%;object-fit:contain}
+.info{position:absolute;bottom:0;width:100%;padding:20px;background:linear-gradient(transparent,rgba(0,0,0,.9));color:#fff;display:flex;justify-content:space-between;align-items:flex-end;transition:opacity .5s}
+.info.hide{opacity:0;pointer-events:none}
+.txt{max-width:65%;pointer-events:auto}.tag{background:var(--o);padding:2px 6px;border-radius:4px;font-size:10px;font-weight:bold;display:inline-block;margin-bottom:8px}
+.txt h3{font-size:16px;margin-bottom:5px}.txt p{font-size:12px;opacity:.8}
+.acts{display:flex;flex-direction:column;gap:12px;pointer-events:auto}
+.abtn{background:rgba(255,255,255,.15);border:none;color:#fff;width:45px;height:45px;border-radius:50%;cursor:pointer;display:flex;flex-direction:column;justify-content:center;align-items:center;font-size:18px;backdrop-filter:blur(5px);position:relative}
+.abtn span{font-size:9px;margin-top:2px;font-weight:bold}
+.abtn.al{color:#4CAF50;background:rgba(76,175,80,.2)}.abtn.ad{color:#F44336;background:rgba(244,67,54,.2)}.abtn.as{color:#FFC107;background:rgba(255,193,7,.2)}
+.cat-badge{position:absolute;top:-10px;right:-10px;background:#fff;color:#000;font-size:7px;padding:2px 5px;border-radius:10px;font-weight:bold;box-shadow:0 2px 4px rgba(0,0,0,.3);white-space:nowrap;max-width:80px;overflow:hidden;text-overflow:ellipsis;display:none}
+.cat-badge.show{display:block}
+.hint{position:absolute;right:20px;top:50%;transform:translateY(-50%);color:#fff;font-size:14px;z-index:10;display:flex;flex-direction:column;align-items:center;gap:5px;background:rgba(0,0,0,.6);padding:10px;border-radius:20px;pointer-events:none;transition:opacity .5s}
+.hint.hide{opacity:0}.arr{font-size:20px;animation:bounce 1.5s infinite}@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+
+@media(max-width:900px){body{overflow:auto;align-items:flex-start;padding:20px 0}.kit{height:auto;min-height:100vh;border-radius:0;width:100%}.grid{grid-template-columns:1fr}.stages{min-height:250px}.ovl{position:fixed;border-radius:0}.item img,.item video{object-fit:cover}.info{flex-direction:column;align-items:flex-start}.acts{flex-direction:row;margin-top:15px;gap:20px;width:100%;justify-content:space-around}.ovl-hd{padding:10px 15px 20px}}
+</style>
+</head>
+<body>
+
+<div class="kit">
+  <div class="hd"><div class="logo">✦</div><h1>Personal Life</h1></div>
+  <div class="grid">
+    <div class="col1">
+      <div class="prof"><img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80"><div><h2>ELIAS <span>VANCE</span></h2><p>Life Story · Memories · Growth</p></div></div>
+      <div class="stats"><div class="sbox"><b>32</b><span>Years</span></div><div class="sbox"><b>24</b><span>Countries</span></div><div class="sbox"><b>10K+</b><span>Memories</span></div></div>
+      <div class="sect">Life Stages</div>
+      <div class="stages" id="stages"></div>
+    </div>
+    <div class="col2">
+      <div class="sect">Important Memories & Events</div>
+      <div class="mems">
+        <div class="mem"><img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=300&q=80"><div class="mem-content"><h4>Graduation</h4><span>2014</span><p>Milestone.</p></div></div>
+        <div class="mem"><img src="https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=300&q=80"><div class="mem-content"><h4>First Job</h4><span>2019</span><p>InnovateCorp.</p></div></div>
+        <div class="mem"><img src="https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&w=300&q=80"><div class="mem-content"><h4>Travel</h4><span>2016</span><p>Asia.</p></div></div>
+        <div class="mem"><img src="https://images.unsplash.com/photo-1559027615-cd4628902d4a?auto=format&fit=crop&w=300&q=80"><div class="mem-content"><h4>Charity</h4><span>Ongoing</span><p>Community.</p></div></div>
+      </div>
+      <div class="pnl"><div class="sect">Education & Profession</div><table><thead><tr><th>Field</th><th>Level</th><th>Year</th></tr></thead><tbody><tr><td>Computer Science</td><td>B.Sc.</td><td><span class="bdg">2014</span></td></tr><tr><td>Life Coaching</td><td>Certified</td><td><span class="bdg">2020</span></td></tr><tr><td>Product Design</td><td>Senior</td><td><span class="bdg">2023</span></td></tr></tbody></table></div>
+    </div>
+    <div class="col3">
+      <div class="pnl" style="flex:1"><div class="sect">Relations & Connections</div><p style="font-size:9px;color:var(--gry);margin-bottom:10px">Breakdown.</p>
+        <div class="bar"><div class="bhd"><span>Family Bonds</span><span>95%</span></div><div class="pbg"><div class="pfl" style="width:95%"></div></div></div>
+        <div class="bar"><div class="bhd"><span>Friendships</span><span>85%</span></div><div class="pbg"><div class="pfl" style="width:85%"></div></div></div>
+        <div class="bar"><div class="bhd"><span>Partnerships</span><span>75%</span></div><div class="pbg"><div class="pfl" style="width:75%"></div></div></div>
+        <div class="bar"><div class="bhd"><span>Community</span><span>60%</span></div><div class="pbg"><div class="pfl" style="width:60%"></div></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal" id="saveModal">
+  <div class="modal-box">
+    <h3>Save to Category</h3>
+    <p>Choose a collection for this memory.</p>
+    <div class="cat-list" id="catList">
+      <button class="cat-btn" data-cat="Liked">❤️ Liked</button>
+      <button class="cat-btn" data-cat="Disliked">👎 Disliked</button>
+      <button class="cat-btn" data-cat="Adventures">✈️ Adventures</button>
+      <button class="cat-btn" data-cat="Family">👨‍👩‍👧 Family</button>
+      <button class="cat-btn" data-cat="Career">💼 Career</button>
+    </div>
+    <input type="text" class="custom-input" id="customCat" placeholder="Or type a new category...">
+    <div class="modal-actions">
+      <button class="modal-btn btn-cancel" id="cancelSave">Cancel</button>
+      <button class="modal-btn btn-save" id="confirmSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MEDIA OVERLAY -->
+<div class="ovl" id="ovl">
+  <div class="ovl-hd" id="hd">
+    <div class="ovl-top"><h2 id="ttl">Stage</h2><button class="cls" id="cls">✕</button></div>
+    
+    <!-- Media Type Tabs -->
+    <div class="tabs"><button class="fbtn on" data-f="all">All (0)</button><button class="fbtn" data-f="image">Images (0)</button><button class="fbtn" data-f="video">Videos (0)</button></div>
+    
+    <!-- NEW: Date Filters -->
+    <div class="date-filters">
+      <select class="date-select" id="yearFilter"><option value="all">All Years</option></select>
+      <select class="date-select" id="monthFilter"><option value="all">All Months</option></select>
+    </div>
+  </div>
+  
+  <div class="hint" id="hint"><div class="arr">▲</div><div style="font-size:10px;font-weight:bold">Scroll</div><div class="arr">▼</div></div>
+  <div class="feed" id="feed"></div>
+</div>
+
+<script>
+// --- DATA (Added year & month properties) ---
+const D={
+ "Childhood":[
+  {t:"image",s:"https://images.unsplash.com/photo-1519340333755-56e9c1d04579?auto=format&fit=crop&w=800&q=80",h:"First Steps",d:"Learning to walk.",g:"#Childhood",y:"1995",m:"06"},
+  {t:"video",s:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4",h:"Playing Outside",d:"Summer days.",g:"#Memories",y:"1998",m:"07"},
+  {t:"image",s:"https://images.unsplash.com/photo-1503454537195-1dc1c2b0a533?auto=format&fit=crop&w=800&q=80",h:"Birthday",d:"Turning 5.",g:"#GrowingUp",y:"1998",m:"12"}
+ ],
+ "Teen Years":[
+  {t:"video",s:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",h:"Skateboarding",d:"Local skate park.",g:"#TeenLife",y:"2008",m:"04"},
+  {t:"image",s:"https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=800&q=80",h:"High School",d:"The crew.",g:"#Friendship",y:"2010",m:"09"},
+  {t:"image",s:"https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80",h:"First Concert",d:"Favorite band.",g:"#Music",y:"2011",m:"08"}
+ ],
+ "University":[
+  {t:"image",s:"https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&w=800&q=80",h:"Campus",d:"Autumn trees.",g:"#College",y:"2012",m:"10"},
+  {t:"video",s:"https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",h:"Grad Trip",d:"Backpacking.",g:"#Travel",y:"2014",m:"06"},
+  {t:"image",s:"https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&w=800&q=80",h:"Late Night",d:"Coffee.",g:"#Hustle",y:"2014",m:"11"}
+ ],
+ "Adulthood":[
+  {t:"image",s:"https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&w=800&q=80",h:"First Job",d:"Career.",g:"#Career",y:"2019",m:"03"},
+  {t:"video",s:"https://storage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",h:"Wedding",d:"Best day.",g:"#Love",y:"2021",m:"09"},
+  {t:"image",s:"https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=800&q=80",h:"Vacation",d:"Mountains.",g:"#Family",y:"2023",m:"07"}
+ ]
+};
+
+// --- STATE ---
+let cat="",flt="all",tmr,currentBtn=null;
+let curYear="all", curMonth="all";
+const ovl=document.getElementById('ovl'),feed=document.getElementById('feed'),hd=document.getElementById('hd'),hint=document.getElementById('hint'),modal=document.getElementById('saveModal');
+const yearSelect=document.getElementById('yearFilter'), monthSelect=document.getElementById('monthFilter');
+
+// --- BUILD CARDS ---
+const sgrid=document.getElementById('stages');
+const allCard=document.createElement('div');
+allCard.className='card all-card';
+allCard.innerHTML=`<div class="ov" style="background:none"><h4>View All Stages</h4><p>Every memory in one place</p></div>`;
+allCard.onclick=()=>open('All');
+sgrid.appendChild(allCard);
+
+Object.keys(D).forEach(c=>{
+  const m=D[c][0],d=document.createElement('div');
+  d.className='card';
+  d.innerHTML=`<img src="${m.t==='video'?'https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&w=300&q=80':m.s}"><div class="ov"><h4>${c}</h4><p>${D[c].length} items</p></div>`;
+  d.onclick=()=>open(c);
+  sgrid.appendChild(d);
+});
+
+// Helper: Get combined data
+function getData(c){
+  let arr = [];
+  if (c === 'All') { Object.keys(D).forEach(k => { arr = arr.concat(D[k]); }); }
+  else { arr = D[c]; }
+  return arr;
+}
+
+// Helper: Update Dropdowns based on available data
+function updateFilters(data){
+  const years = [...new Set(data.map(i=>i.y))].sort();
+  const months = ["01","02","03","04","05","06","07","08","09","10","11","12"];
+  const monthNames = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  
+  yearSelect.innerHTML = `<option value="all">All Years</option>` + years.map(y=>`<option value="${y}">${y}</option>`).join('');
+  monthSelect.innerHTML = `<option value="all">All Months</option>` + months.map((m,i)=>`<option value="${m}">${monthNames[i]}</option>`).join('');
+  
+  curYear = "all"; curMonth = "all";
+}
+
+function open(c){
+  cat=c;flt="all";curYear="all";curMonth="all";
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('on'));
+  document.querySelector('[data-f="all"]').classList.add('on');
+  
+  let items = getData(c);
+  updateFilters(items);
+  
+  const tot=items.length,img=items.filter(i=>i.t==='image').length,vid=items.filter(i=>i.t==='video').length;
+  document.querySelector('[data-f="all"]').textContent=`All (${tot})`;
+  document.querySelector('[data-f="image"]').textContent=`Images (${img})`;
+  document.querySelector('[data-f="video"]').textContent=`Videos (${vid})`;
+  
+  document.getElementById('ttl').textContent=c === 'All' ? 'All Life Stages' : c;
+  render();
+  ovl.classList.add('on');showUI();
+}
+
+function render(){
+  feed.innerHTML='';
+  let items = getData(cat);
+  
+  // Apply Filters
+  if(flt!=='all') items=items.filter(i=>i.t===flt);
+  if(curYear!=='all') items=items.filter(i=>i.y===curYear);
+  if(curMonth!=='all') items=items.filter(i=>i.m===curMonth);
+
+  if(!items.length){feed.innerHTML='<div style="color:#fff;display:flex;justify-content:center;align-items:center;height:100%;font-size:14px;flex-direction:column;gap:10px"><span>No items found for this filter.</span><button onclick="resetFilters()" style="background:var(--o);color:#fff;border:none;padding:5px 10px;border-radius:5px;cursor:pointer">Reset Filters</button></div>';return;}
+  
+  items.forEach((it,i)=>{
+    const div=document.createElement('div');
+    div.className='item';
+    const media=it.t==='image'?`<img src="${it.s}">`:`<video src="${it.s}" autoplay muted loop playsinline></video>`;
+    div.innerHTML=`${media}<div class="info"><div class="txt"><span class="tag">${it.g}</span><h3>${it.h}</h3><p>${it.d} <span style="opacity:.6">(${it.y}-${it.m})</span></p></div>
+      <div class="acts">
+        <button class="abtn like" data-i="${i}">👍<span>Like</span><div class="cat-badge"></div></button>
+        <button class="abtn dis" data-i="${i}">👎<span>Dislike</span><div class="cat-badge"></div></button>
+        <button class="abtn save" data-i="${i}">🔖<span>Save</span><div class="cat-badge"></div></button>
+      </div></div>`;
+    feed.appendChild(div);
+  });
+  
+  // LIKE & DISLIKE
+  feed.querySelectorAll('.like').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();b.classList.toggle('al');
+    if(b.classList.contains('al')){
+      b.closest('.acts').querySelector('.dis').classList.remove('ad');
+      b.closest('.acts').querySelector('.dis').querySelector('.cat-badge').classList.remove('show');
+      b.querySelector('.cat-badge').textContent="Liked";b.querySelector('.cat-badge').classList.add('show');b.querySelector('span').textContent="Liked";
+    } else {b.querySelector('.cat-badge').classList.remove('show');b.querySelector('span').textContent="Like";}
+    showUI();
+  });
+
+  feed.querySelectorAll('.dis').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();b.classList.toggle('ad');
+    if(b.classList.contains('ad')){
+      b.closest('.acts').querySelector('.like').classList.remove('al');
+      b.closest('.acts').querySelector('.like').querySelector('.cat-badge').classList.remove('show');
+      b.querySelector('.cat-badge').textContent="Disliked";b.querySelector('.cat-badge').classList.add('show');b.querySelector('span').textContent="Disliked";
+    } else {b.querySelector('.cat-badge').classList.remove('show');b.querySelector('span').textContent="Dislike";}
+    showUI();
+  });
+
+  feed.querySelectorAll('.save').forEach(b=>b.onclick=e=>{
+    e.stopPropagation();currentBtn=b;
+    document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('sel'));
+    document.getElementById('customCat').value='';
+    modal.classList.add('on');
+  });
+  
+  feed.scrollTop=0;obs();
+}
+
+function resetFilters(){
+  curYear="all";curMonth="all";
+  yearSelect.value="all";monthSelect.value="all";
+  render();showUI();
+}
+
+// --- DATE FILTER EVENTS ---
+yearSelect.onchange = (e) => { curYear = e.target.value; render(); showUI(); };
+monthSelect.onchange = (e) => { curMonth = e.target.value; render(); showUI(); };
+
+// --- SAVE MODAL ---
+let selectedCat='';
+document.querySelectorAll('.cat-btn').forEach(b=>{b.onclick=function(){document.querySelectorAll('.cat-btn').forEach(x=>x.classList.remove('sel'));this.classList.add('sel');selectedCat=this.getAttribute('data-cat');document.getElementById('customCat').value='';}});
+document.getElementById('cancelSave').onclick=()=>{modal.classList.remove('on');};
+document.getElementById('confirmSave').onclick=()=>{
+  const custom=document.getElementById('customCat').value.trim();
+  const finalCat=custom||selectedCat||"Uncategorized";
+  if(currentBtn){
+    currentBtn.classList.add('as');
+    currentBtn.querySelector('.cat-badge').textContent=finalCat;
+    currentBtn.querySelector('.cat-badge').classList.add('show');
+    currentBtn.querySelector('span').textContent="Saved";
+  }
+  modal.classList.remove('on');showUI();
+};
+
+// --- UI VISIBILITY ---
+function showUI(){
+  hd.classList.remove('hide');hint.classList.remove('hide');
+  feed.querySelectorAll('.info').forEach(i=>i.classList.remove('hide'));
+  clearTimeout(tmr);
+  tmr=setTimeout(()=>{hd.classList.add('hide');hint.classList.add('hide');feed.querySelectorAll('.info').forEach(i=>i.classList.add('hide'));},5000);
+}
+ovl.onclick=e=>{if(!e.target.closest('button')&&!e.target.closest('.modal')&&!e.target.closest('select'))showUI();};
+document.getElementById('cls').onclick=()=>{ovl.classList.remove('on');clearTimeout(tmr);feed.querySelectorAll('video').forEach(v=>v.pause());};
+document.querySelectorAll('.fbtn').forEach(b=>b.onclick=e=>{
+  e.stopPropagation();
+  document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('on'));
+  b.classList.add('on');flt=b.dataset.f;render();showUI();
+});
+
+let vo;
+function obs(){
+  if(vo)vo.disconnect();
+  vo=new IntersectionObserver(es=>{es.forEach(e=>{const v=e.target.querySelector('video');if(v){if(e.isIntersecting)v.play().catch(()=>{});else v.pause();}});},{threshold:.5});
+  feed.querySelectorAll('.item').forEach(i=>vo.observe(i));
+}
+</script>
+</body>
+</html>
