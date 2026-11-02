@@ -1,0 +1,268 @@
+```html
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-black">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DriveTok - Google Drive Video Feed</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            overscroll-behavior-y: none;
+        }
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+        /* Snap container styling */
+        .snap-container {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+            height: 100dvh;
+        }
+        .snap-item {
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            height: 100vh;
+            height: 100dvh;
+        }
+    </style>
+</head>
+<body class="h-full text-white bg-black overflow-hidden flex flex-col justify-center items-center">
+
+    <!-- Mobile Frame Wrapper for Desktop / Full screen on Mobile -->
+    <div id="app-container" class="w-full max-w-md h-full bg-zinc-950 relative flex flex-col shadow-2xl overflow-hidden">
+        
+        <!-- Main Video Feed Container -->
+        <main id="video-feed" class="snap-container no-scrollbar w-full relative flex-1">
+            <!-- Loading State -->
+            <div id="loading-state" class="absolute inset-0 flex flex-col items-center justify-center bg-zinc-950 z-20">
+                <div class="w-12 h-12 border-4 border-white/80 border-t-transparent rounded-full animate-spin mb-4"></div>
+                <p class="text-sm font-medium text-zinc-400">Loading Google Drive videos...</p>
+                <p class="text-xs text-zinc-600 mt-2 px-6 text-center">Folder ID: <code class="bg-zinc-900 px-1.5 py-0.5 rounded text-zinc-400">1x7M6rO-zADfHphyeCTsuRPg-5oeX6wqc</code></p>
+            </div>
+        </main>
+
+    </div>
+
+    <!-- Application JavaScript -->
+    <script>
+        // Configuration & State
+        const DEFAULT_FOLDER_ID = '1x7M6rO-zADfHphyeCTsuRPg-5oeX6wqc';
+        let state = {
+            folderId: DEFAULT_FOLDER_ID,
+            apiKey: '',
+            videos: [],
+            currentIndex: 0,
+            isMuted: false
+        };
+
+        // Fallback sample videos in case Google Drive folder requires authentication or is empty
+        const FALLBACK_VIDEOS = [
+            {
+                id: 'sample-1',
+                name: 'Neon Cyberpunk Citywalk',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4'
+            },
+            {
+                id: 'sample-2',
+                name: 'Scenic Mountain Drone Flight',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4'
+            },
+            {
+                id: 'sample-3',
+                name: 'Sunset Ocean Waves Relaxation',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4'
+            }
+        ];
+
+        // DOM Elements
+        const feedContainer = document.getElementById('video-feed');
+        const loadingState = document.getElementById('loading-state');
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            loadVideos();
+        });
+
+        // Fetch Videos from Google Drive API v3
+        async function loadVideos() {
+            loadingState.classList.remove('hidden');
+            feedContainer.innerHTML = '';
+            feedContainer.appendChild(loadingState);
+
+            try {
+                const query = `'${state.folderId}' in parents and mimeType contains 'video/' and trashed = false`;
+                let url = `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}&fields=files(id,name,mimeType)`;
+                
+                const response = await fetch(url);
+                if (!response.ok) {
+                    throw new Error(`Google Drive API error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                const files = data.files || [];
+
+                if (files.length === 0) {
+                    state.videos = FALLBACK_VIDEOS;
+                } else {
+                    state.videos = files.map((file) => ({
+                        id: file.id,
+                        name: file.name,
+                        url: `https://lh3.googleusercontent.com/d/${file.id}`
+                    }));
+                }
+            } catch (err) {
+                console.warn('Google Drive direct fetch failed. Falling back to sample video feed:', err);
+                state.videos = FALLBACK_VIDEOS;
+            } finally {
+                loadingState.classList.add('hidden');
+                renderFeed();
+            }
+        }
+
+        // Render Feed DOM with video and slim progress bar
+        function renderFeed() {
+            const existingLoading = document.getElementById('loading-state');
+            feedContainer.innerHTML = '';
+            if (existingLoading) feedContainer.appendChild(existingLoading);
+
+            if (state.videos.length === 0) {
+                const emptyEl = document.createElement('div');
+                emptyEl.className = 'flex flex-col items-center justify-center h-full text-center p-6';
+                emptyEl.innerHTML = `
+                    <p class="text-sm text-zinc-400 font-medium">No videos available</p>
+                    <button onclick="loadVideos()" class="mt-4 px-4 py-2 bg-white text-black rounded-lg text-xs font-semibold">Try Again</button>
+                `;
+                feedContainer.appendChild(emptyEl);
+                return;
+            }
+
+            state.videos.forEach((video, index) => {
+                const item = document.createElement('div');
+                item.className = 'snap-item w-full relative flex items-center justify-center bg-black overflow-hidden';
+                item.dataset.index = index;
+
+                item.innerHTML = `
+                    <!-- Video Element -->
+                    <video 
+                        id="video-${index}"
+                        class="absolute inset-0 w-full h-full object-cover cursor-pointer"
+                        src="${video.url}"
+                        loop
+                        playsinline
+                        webkit-playsinline
+                        preload="metadata"
+                    ></video>
+
+                    <!-- Video Loading Spinner -->
+                    <div id="vid-loading-${index}" class="absolute inset-0 flex items-center justify-center bg-black/20 pointer-events-none">
+                        <div class="w-8 h-8 border-2 border-white/50 border-t-white rounded-full animate-spin"></div>
+                    </div>
+
+                    <!-- Slim Progress Bar at the very bottom of the video screen -->
+                    <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-white/20 cursor-pointer group progress-bar-container" data-index="${index}">
+                        <div id="progress-${index}" class="h-full bg-white w-0 transition-all duration-75 relative">
+                            <div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-3 h-3 bg-white rounded-full shadow-md opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                        </div>
+                    </div>
+                `;
+
+                feedContainer.appendChild(item);
+            });
+
+            attachVideoInteractions();
+            setupIntersectionObserver();
+        }
+
+        // Attach Video Play/Pause & Progress Bar Tracking
+        function attachVideoInteractions() {
+            state.videos.forEach((video, index) => {
+                const videoEl = document.getElementById(`video-${index}`);
+                const spinnerEl = document.getElementById(`vid-loading-${index}`);
+                const progressBar = document.getElementById(`progress-${index}`);
+                const progressContainer = feedContainer.querySelector(`.progress-bar-container[data-index="${index}"]`);
+
+                // Video loading events
+                videoEl.addEventListener('waiting', () => spinnerEl.classList.remove('hidden'));
+                videoEl.addEventListener('playing', () => spinnerEl.classList.add('hidden'));
+                videoEl.addEventListener('canplay', () => spinnerEl.classList.add('hidden'));
+
+                // Update progress bar during playback
+                videoEl.addEventListener('timeupdate', () => {
+                    if (videoEl.duration) {
+                        const percent = (videoEl.currentTime / videoEl.duration) * 100;
+                        progressBar.style.width = `${percent}%`;
+                    }
+                });
+
+                // Seek on progress bar click / touch
+                progressContainer.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    const rect = progressContainer.getBoundingClientRect();
+                    const clickX = e.clientX - rect.left;
+                    const width = rect.width;
+                    const percentage = clickX / width;
+                    if (videoEl.duration) {
+                        videoEl.currentTime = percentage * videoEl.duration;
+                    }
+                });
+
+                // Tap video to play/pause
+                videoEl.addEventListener('click', () => {
+                    if (videoEl.paused) {
+                        videoEl.play();
+                    } else {
+                        videoEl.pause();
+                    }
+                });
+            });
+        }
+
+        // Intersection Observer for autoplaying current active video
+        function setupIntersectionObserver() {
+            const options = {
+                root: feedContainer,
+                threshold: 0.6
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    const index = entry.target.dataset.index;
+                    const videoEl = document.getElementById(`video-${index}`);
+                    
+                    if (!videoEl) return;
+
+                    if (entry.isIntersecting) {
+                        state.currentIndex = parseInt(index);
+                        videoEl.muted = state.isMuted;
+                        videoEl.play().catch(err => {
+                            console.log('Autoplay blocked:', err);
+                        });
+                    } else {
+                        videoEl.pause();
+                        videoEl.currentTime = 0;
+                    }
+                });
+            }, options);
+
+            document.querySelectorAll('.snap-item').forEach(item => {
+                observer.observe(item);
+            });
+        }
+    </script>
+</body>
+</html>
+```
